@@ -32,6 +32,8 @@ year.plot <- ggplot(data = subset(by.year.df, Year > beg_plot & Year <= end_plot
                     opts(title = sub(" by country", "", country.title))
 
 # summed by country (Different versions)
+# Each of these can have a theme for publication added on later, meaning b/w, grayscale,
+# etc. 
 
 # basic ggplot2, no major changes
 country.plot <- ggplot(data = subset(by.year.country.df, Year > beg_plot & Year <= end_plot), aes(Year, Patents, colour = Country)) +
@@ -44,6 +46,6 @@ inset.legend <- country.plot + opts(legend.background = theme_rect(fill="white")
                                     legend.text = theme_text(size = 16), title = country.title)
                                
 # Show all countries seperately with common x axis for time. 
-country.facet <- country.plot + facet_grid(Country ~ .)
+country.facet <- country.plot + facet_grid(Country ~ .) + guides(colour = FALSE)
 
 
