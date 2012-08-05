@@ -8,7 +8,24 @@ patents.df <- read.csv(path.patents.table, as.is = TRUE, na.strings = c("NA", ""
 langs.str <- c('Britain','Germany','France','United States')
 patents.df[, "Where.filed"] <- langs.str[match(patents.df[, "Where.filed"], c("br", "de", "fr", "us"))]
 
+# Rename (preliminary)
+
+names(patents.df) <- c("Year.protection.applied",
+                       "Filing.Country",
+                       "Authors",
+                       "Field",
+                       "Patent.No",
+                       "More.Date.Info",
+                       "English.Title.Summary",
+                       "Notes",
+                       "Original.Language.Title",
+                       "Supplementary.To",
+                       "Aircraft.Related",
+                       "Date.Applied.For",
+                       "Date.Granted",
+                       "Global.Patent.ID")
+                       
 ## Cleanup rows
 
-patents.df[, "date.applied.for"] <- gsub("[^0-9/]", "", patents.df[, "date.applied.for"])
-patents.df[, "date.granted"] <- gsub("[^0-9/]", "", patents.df[, "date.granted"])
+patents.df[, "Date.Applied.For"] <- gsub("[^0-9/]", "", patents.df[, "Date.Applied.For"])
+patents.df[, "Date.Granted"] <- gsub("[^0-9/]", "", patents.df[, "Date.Granted"])
