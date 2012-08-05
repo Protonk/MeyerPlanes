@@ -27,10 +27,23 @@ country.title <- paste0("Aeronautically-relevant patents by country\n", beg_plot
 
 # Summed by year
 year.plot <- ggplot(data = subset(by.year.df, Year > beg_plot & Year <= end_plot),
-                    aes(Year, Patents)) + geom_line() + xlab('') +
+                    aes(Year, Patents)) + geom_line() + xlab("") +
                     ylab('Count of Publications') + 
                     opts(title = sub(" by country", "", country.title))
-# summed by country
-country.plot <- ggplot(data = subset(by.year.country.df, Year > beg_plot & Year <= end_plot),
-                       aes(Year, Patents, colour = Country)) + geom_line() + xlab('') +
-                       opts(title = country.title) + ylab('Count of Publications')
+
+# summed by country (Different versions)
+
+# basic ggplot2, no major changes
+country.plot <- ggplot(data = subset(by.year.country.df, Year > beg_plot & Year <= end_plot), aes(Year, Patents, colour = Country)) +
+                       geom_line(size = 1) + opts(title = country.title) +
+                       xlab("") + ylab('Count of Publications')
+                       
+# set to more closely match the original, without line type changes
+inset.legend <- country.plot + opts(legend.background = theme_rect(fill="white"), 
+                                    legend.justification=c(0,1), legend.position=c(0,1), 
+                                    legend.text = theme_text(size = 16), title = country.title)
+                               
+# Show all countries seperately with common x axis for time. 
+country.facet <- country.plot + facet_grid(Country ~ .)
+
+
