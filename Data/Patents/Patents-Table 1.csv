@@ -541,7 +541,7 @@ PBM's note:  There's no  DE patent # in the source ; possibly this is not a Germ
 1890,de,"Lilienthal, G.",,,,Removing charred portion of lamp wicks,Lilienthal museum,Removing charred portion of lamp wicks,,1,,,,,,,,
 1891,de,Hankwitz,,,1891/01/10,Schraubenförmiger Luftballon,Lilienthal museum,Schraubenförmiger Luftballon,,1,,,,,,,,
 1891,de,"Bauer, Johannes (Varel a. d. Jade)",LTA,68776,1891/05/24,Steerable airship,Lilienthal museum ; http://www.museumnet.lilienthal-museum.de/digitalisate/de000000068776a.pdf,Lenkbares Luftschiff,,1,1891/05/24,1893/06/02,,,,,,
-1891,de,"Baudisch, Hugo (Berlin)",Engine / Motor,63774,1891/06/24,Drive device for sash of airships,Lilienthal museum ; http://www.museumnet.lilienthal-museum.de/digitalisate/de000000063774a.pdf,Antriebsvorrichtung für Flügel von Luftschiffen,,1,1891/06/24,1892/08/13,,,,,,
+1891,de,"Baudisch, Hugo (Berlin)",propulsion,63774,1891/06/24,Drive device for sash of airships,Lilienthal museum ; http://www.museumnet.lilienthal-museum.de/digitalisate/de000000063774a.pdf,Antriebsvorrichtung für Flügel von Luftschiffen,,1,1891/06/24,1892/08/13,,,,,,
 1891,de,"Geissler, C.",,,1891/08/28,Luftschiff mit Lenkvorrichtung,Lilienthal museum,Luftschiff mit Lenkvorrichtung,,1,,,,,,,,
 1891,de,Capone,,,1891/11/05,Flugmaschine,Lilienthal museum,Flugmaschine,,1,,,,,,,,
 1891,de,Klumpp,,,1891/12/17,Flugapparat bestehend aus Luftturbine und Pumpe,Lilienthal museum,Flugapparat bestehend aus Luftturbine und Pumpe,,1,,,,,,,,
@@ -1361,9 +1361,9 @@ managing balloons",,1,,,,,,,,
 New York, NY",,"23,163",1859/03/08,Balloon,Short's DB,Balloon,,1,,,,,,,,
 1859,us,"Bright, Henry",, ,,Counter rotating helicopter,Short's DB,Counter rotating helicopter,,1,,,,,,,,
 1861,us,"Nelson, Mortimer
-New York, NY",,32378,1861/05/21,Balloon or aerial car,Short's DB,Balloon or aerial car,,1,,,,,,,,
+New York, NY",,"32,378",1861/05/21,Balloon or aerial car,Short's DB,Balloon or aerial car,,1,,,,,,,,
 1861,us,"Quinby, Watson F.
-Stanton, DE",,33797,1861/11/26,App for navigating the air,Short's DB,App for navigating the air,,1,,,,,,,,
+Stanton, DE",,"33,797",1861/11/26,App for navigating the air,Short's DB,App for navigating the air,,1,,,,,,,,
 1862,us,"Crowell, Luther C.
 West Dennis, MA",,,1862/06/03,Aerial machine,Short's DB,Aerial machine,,1,,,,,,,,
 1863,us,"Shaw, Thomas L.
