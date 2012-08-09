@@ -36,6 +36,9 @@ patents.df[, "Authors"] <- gsub("\\\n.*$|\\(.*\\)", "", patents.df[, "Authors"])
 
 ## Classification 
 
+# The NA string for this field appears to be "NANA"
+patents.df[grep("NANA", patents.df[, "Field"]), "Field"] <- NA
+
 # You indication the presence of a question mark denoted a potentially unsure 
 # classification. We note this and remove the question mark
 patents.df[, "Classification Unsure"] <- grepl("\\?+", patents.df[, "Field"])
@@ -57,4 +60,19 @@ capwords <- function(s, strict = FALSE) {
 patents.df[, "Field"] <- capwords(patents.df[, "Field"])
 
 
+### Reduce columns to those which will be meaningful to analysis and graphing
 
+# A number of these are being dropped due to sparseness. Try 
+# apply(patents.df, 2, function(s) sum(is.na(s))) if you're not convinced
+
+patents.df <- patents.df[, c("Year.protection.applied",
+                             "Filing.Country",
+                             "Authors",
+                             "Field",
+                             "Classification Unsure",
+                             "Patent.No",
+                             "More.Date.Info",
+                             "English.Title.Summary",
+                             "Notes",
+                             "Original.Language.Title",
+                             "Aircraft.Related")]
