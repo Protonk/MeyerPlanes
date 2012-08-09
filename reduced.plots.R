@@ -46,4 +46,5 @@ inset.legend <- country.plot + opts(legend.background = theme_rect(fill="white")
                                     legend.text = theme_text(size = 16), title = country.title)
                                
 # Show all countries seperately with common x axis for time. 
-country.facet <- country.plot + facet_grid(Country ~ .) + guides(colour = FALSE)
+# labeller argument allows us to drop facet labels.
+country.facet <- country.plot + facet_grid(Country ~ . , labeller = label_bquote('')) + guides(colour = FALSE)
