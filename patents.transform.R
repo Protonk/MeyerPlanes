@@ -1,3 +1,7 @@
+# include text mining library as a more consistent method of extracting information 
+# from titles
+library(tm)
+
 ### Generate title information
 
 ## Simple table of terms. Potentially useful for visualization
