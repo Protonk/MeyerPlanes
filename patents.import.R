@@ -2,7 +2,7 @@
 # from titles
 library(tm)
 
-path.patents.table <- file.path(getwd(), "Data", "Patents-Table 1.csv")
+path.patents.table <- file.path(getwd(), "Data", "Patents", "Patents-Table 1.csv")
 
 # na.strings modified to include empty date strings
 # Columns 15-19 are empty
@@ -36,17 +36,6 @@ patents.df[, "Date.Granted"] <- gsub("[^0-9/]", "", patents.df[, "Date.Granted"]
 # Drop location information for authors (~ 400 rows)
 patents.df[, "Authors"] <- gsub("\\\n.*$|\\(.*\\)", "", patents.df[, "Authors"])
 
-### Generate title information
 
-## Simple table of terms. Potentially useful for visualization
-# lowercase and drop hyphens
-term.table <- table(tolower(gsub("-", " ", patents.df[, "English.Title.Summary"])))
-term.table <- Filter(function(x) x > 3, term.table)
-term.table <- term.table[order(term.table, decreasing = TRUE)]
 
-## Categories for titles (need input here)
 
-airships.pat <- "balloon|dirigible|(air|aerial)[- ]ship|luftschiff"
-airplane.pat <- "airplane|aeroplane|flugzeug"
-flying.pat <- "(flying|aerial)[- ]machine||apparatus|flugapparat|flugmaschine"
-component.pat <- "device|propeller|^apparatus"

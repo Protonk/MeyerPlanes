@@ -1,7 +1,7 @@
 library(plyr)
 library(ggplot2)
-# Working directory set as "MeyerPlanes"
-reduced.path <- file.path(getwd(), "Data", "patents_small.csv")
+# Expects working directory set to "MeyerPlanes"
+reduced.path <- file.path(getwd(), "Data", "Patents", "patents_small.csv")
 
 reduced.df <- read.csv(file = reduced.path, as.is = TRUE, header = FALSE)
 
@@ -47,5 +47,3 @@ inset.legend <- country.plot + opts(legend.background = theme_rect(fill="white")
                                
 # Show all countries seperately with common x axis for time. 
 country.facet <- country.plot + facet_grid(Country ~ .) + guides(colour = FALSE)
-
-
