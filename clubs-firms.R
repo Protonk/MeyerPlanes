@@ -29,14 +29,29 @@ clubs.df[, "Scope"] <- sub("Univesrsity", "University", clubs.df[, "Scope"])
 # Split into multiples 
 # I'll be doing this for firms, clubs, articles and patents, so this will be turned into a
 # reusable function
+# Breaks columns w/ multiple classifications into single classifications
+# Mostly finished
+# "Binary" will denote the type of dummy variable for accounting purposes
 
-# captures "and" inside parens. I'll fix that in a bit
-clubs.multiples <- strsplit(clubs.df[, "Scope"], ", | and ")
-n.mult.cols <- max(laply(clubs.multiples, length))
-# Select only the 2nd col 
-second.col <- laply(clubs.multiples[sapply(clubs.multiples, length) == 2], `[`, 2)
+breakMultiples <- function(data, column, split.regex = ", | and ", binary = TRUE) {
+  # strsplit creates a list from the splitting regex
+  mult.list <- strsplit(data[, column], split.regex)
+  # grab length for each list element
+  mult.cols <- laply(mult.list, length)
+  # fill space out first (makes it a little faster and easier to understand)
+  prefill.mat <- matrix(NA,
+                        nrow = nrow(data),
+                        ncol = max(mult.cols))
+  colnames(prefill.mat) <- paste(column, "Category", 1:max(mult.cols), sep = " ")
+  # select only those elements which are in the ith category
+  for (i in 1:max(mult.cols)) {
+    prefill.mat[, i] <- laply(mult.list, `[`, i)
+  }
+  return(prefill.mat)
+}
+    
+                  
 
-sapply(clubs.multiples, length)
 
 # TODO: Note "?"
 #       Standardize
