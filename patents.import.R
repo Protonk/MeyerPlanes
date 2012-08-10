@@ -38,7 +38,7 @@ patents.df[, "Authors"] <- gsub("\\\n.*$|\\(.*\\)", "", patents.df[, "Authors"])
 ## Classification 
 
 # The NA string for this field appears to be "NANA"
-patents.df[grep("NANA", patents.df[, "Field"]), "Field"] <- NA
+# patents.df[grep("NANA", patents.df[, "Field"]), "Field"] <- NA
 
 # You indication the presence of a question mark denoted a potentially unsure 
 # classification. We note this and remove the question mark
@@ -58,7 +58,8 @@ capwords <- function(s, strict = FALSE) {
                            sep = "", collapse = " " )
   sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
 }
-patents.df[, "Field"] <- capwords(patents.df[, "Field"])
+# Be careful, no NA checking
+patents.df[!is.na(patents.df[, "Field"]), "Field"] <- capwords(patents.df[!is.na(patents.df[, "Field"]), "Field"])
 
 
 ### Reduce columns to those which will be meaningful to analysis and graphing

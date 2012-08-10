@@ -23,12 +23,12 @@ by.year.country.df[, "Country"] <- factor(by.year.country.df[, "Country"])
 # Adjustable title and limits
 beg_plot <- 1850 ##beg_year
 end_plot <- 1910 ##end_year
-country.title <- paste0("Aeronautically-relevant patents by country\n", beg_plot, '-', end_plot)
+country.title <- paste0("Aeronautically-relevant patents by country ", beg_plot, '-', end_plot)
 
 # Summed by year
 year.plot <- ggplot(data = subset(by.year.df, Year > beg_plot & Year <= end_plot),
                     aes(Year, Patents)) + geom_line() + xlab("") +
-                    ylab('Count of Publications') + 
+                    ylab('Patents') + 
                     opts(title = sub(" by country", "", country.title))
 
 # summed by country (Different versions)
@@ -38,7 +38,7 @@ year.plot <- ggplot(data = subset(by.year.df, Year > beg_plot & Year <= end_plot
 # basic ggplot2, no major changes
 country.plot <- ggplot(data = subset(by.year.country.df, Year > beg_plot & Year <= end_plot), aes(Year, Patents, colour = Country)) +
                        geom_line(size = 1) + opts(title = country.title) +
-                       xlab("") + ylab('Count of Publications')
+                       xlab("") + ylab('Patents')
                        
 # set to more closely match the original, without line type changes
 inset.legend <- country.plot + opts(legend.background = theme_rect(fill="white"), 
@@ -49,8 +49,10 @@ inset.legend <- country.plot + opts(legend.background = theme_rect(fill="white")
 # labeller argument allows us to drop facet labels.
 # See https://github.com/hadley/ggplot2/wiki/Faceting-Attributes
 
+
 country.facet <- country.plot + facet_grid(Country ~ . , labeller = label_bquote('')) + 
-  guides(colour = FALSE) + opts(strip.background = theme_rect(colour = NA, fill = NA)) +
+  guides(colour = FALSE) + opts(strip.background = theme_rect(colour = NA, fill = NA),
+                                plot.title = theme_text(size=20)) +
   geom_text(aes_string(x = 1855, y = 40, label = "Country"),
             show_guide = FALSE, hjust = 0, size = 7)
 
