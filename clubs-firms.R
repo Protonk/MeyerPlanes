@@ -108,6 +108,22 @@ end_clubs <- 1915 ##end_year
 
 clubs.title <- paste0("Aviation Club Starts ", beg_clubs, '-', end_clubs)
 
+# Footnotes from https://github.com/kjhealy/5by5-figures/blob/master/shows.r
+
+makeFootnote <- function(footnoteText = format(Sys.time(), "%d %b %Y"),
+                         size= .7, color= grey(.5)) {
+  require(grid)
+  pushViewport(viewport())
+  grid.text(label= footnoteText ,
+            x = unit(1,"npc") - unit(2, "mm"),
+            y= unit(2, "mm"),
+            just=c("right", "bottom"),
+            gp=gpar(cex= size, col=color))
+  popViewport()
+}
+
+
+
 clubs.country.preplot <- ggplot(data = subset(starts.year.country, Matched.Start.Year > beg_clubs & Matched.Start.Year < end_clubs), 
                              aes(x = Matched.Start.Year, xend = Matched.Start.Year,
                                  y = nrow, yend = 0, colour = Country.Factor)) +
