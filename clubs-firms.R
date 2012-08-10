@@ -85,7 +85,12 @@ clubs.df[grepl("Germany", clubs.df[, "Country"]), "Country.Factor"] <- "Germany"
 clubs.df[grepl("France", clubs.df[, "Country"]), "Country.Factor"] <- "France"
 clubs.df[grepl("US", clubs.df[, "Country"]), "Country.Factor"] <- "United States"
 
-clubs.df[, "Country.Factor"] <- factor(clubs.df[, "Country.Factor"])
+clubs.df[, "Country.Factor"] <- factor(clubs.df[, "Country.Factor"],
+                                       levels = c("Germany",
+                                                  "France",
+                                                  "United Kingdom",
+                                                  "United States",
+                                                  "Other"))
 
 
 
@@ -95,4 +100,16 @@ starts.year.country <- ddply(clubs.df, c("Matched.Start.Year", "Country.Factor")
 
 starts.year.country <- starts.year.country[!is.na(starts.year.country[, "Matched.Start.Year"]), ]
 
+starts.preplot.df <- subset(starts.year.country, Matched.Start.Year > 1860 & Matched.Start.Year < 1920)
+clubs.country.preplot <- ggplot(data = starts.preplot.df, 
+                             aes(x = Matched.Start.Year, xend = Matched.Start.Year,
+                                 y = nrow, yend = 0, colour = Country.Factor)) +
+  geom_segment(size = 2.5) + geom_text(aes_string(x = 1870, y = 30, label = "Country.Factor"), show_guide = FALSE, hjust = 0, size = 8)
 
+clubs.country.plot <- clubs.country.preplot + facet_grid(Country.Factor ~ . , labeller = label_bquote('')) +
+  guides(colour = FALSE) + xlab("") + ylab('Clubs') +
+  opts(strip.background = theme_rect(colour = NA, fill = NA),
+       title = expression("Aviation Club Starts 1860-1920"))
+                               
+                                
+  
