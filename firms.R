@@ -24,7 +24,7 @@ firms.df[, "Nation"] <- gsub(" \\([^()]*\\)", "", firms.df[, "Nation"])
 
 firms.df[, "Nation"] <- sub(";", ",", firms.df[, "Nation"])
 
-# breakMultiples(data = firms.df, column = "Nation")
+firms.breakout <- breakMultiples(data = firms.df, column = "Nation")
 
 
 ## Years
@@ -51,8 +51,32 @@ firms.df[, "Year Imputed"] <- sub("189$", "1895", firms.df[, "Year Imputed"])
 
 firms.df[nchar(firms.df[, "Year Imputed"]) == 0, "Year Imputed"] <- NA
 
+# multiple locations combined with years
 
+catMultipleCountries <- function() {
+  firms.multiple <- cbind(firms.breakout, firms.df[, "Year Imputed"])
+  names(firms.multiple) <- c(names(firms.breakout), "Year")
+  
+  firms.reduced.final <- data.frame(matrix(NA, ncol = 3, nrow = 0))
+  names(firms.reduced.final) <- c("Country", "Year", "Firm Starts")
+  for (i in (1:(ncol(firms.breakout) - 1))) {
+    firms.reduced <- ddply(firms.multiple, c(i,5), "nrow")
+    names(firms.reduced) <- c("Country", "Year", "Firm Starts")
+    firms.reduced.final <- rbind(firms.reduced.final, firms.reduced)
+  }
+  firms.reduced.final[, "Year"] <- as.numeric(as.character(firms.reduced.final[, "Year"]))
+  return(firms.reduced.final)
+}
 
+firms.reduced.df <- catMultipleCountries()
+
+firms.reduced.df[, "Country"] <- as.character(firms.reduced.df[, "Country"])
+
+other.countries <- names(table(firms.reduced.df[, "Country"]))[table(firms.reduced.df[, "Country"]) <= 6]
+firms.reduced.df[firms.reduced.df[, "Country"] %in% other.countries, "Country"] <- "Other"
+firms.reduced.df[, "Country"] <- factor(firms.reduced.df[, "Country"])
+
+  
 
 
 
