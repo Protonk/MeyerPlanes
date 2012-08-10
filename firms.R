@@ -22,7 +22,7 @@ firms.df[, "Nation"] <- gsub(" \\([^()]*\\)", "", firms.df[, "Nation"])
 
 # separators and split listings
 
-firms.df[, "Nation"] <- sub(";", "," firms.df[, "Nation"])
+firms.df[, "Nation"] <- sub(";", ",", firms.df[, "Nation"])
 
 # breakMultiples(data = firms.df, column = "Nation")
 
@@ -42,6 +42,15 @@ firms.df[, "Year Imputed"] <- gsub("\\D", "", firms.df[, "Year Start"])
 ranged <- firms.df[grep("\\d{8}", firms.df[, "Year Imputed"]), "Year Imputed"]
 avg.ranged <- round((as.numeric(substr(ranged, 0, 4)) + as.numeric(substr(ranged, 5, 8)))/2)
 firms.df[grep("\\d{8}", firms.df[, "Year Imputed"]), "Year Imputed"] <- avg.ranged
+
+# 189X to 1895
+
+firms.df[, "Year Imputed"] <- sub("189$", "1895", firms.df[, "Year Imputed"])
+
+# Mark NA
+
+firms.df[nchar(firms.df[, "Year Imputed"]) == 0, "Year Imputed"] <- NA
+
 
 
 
