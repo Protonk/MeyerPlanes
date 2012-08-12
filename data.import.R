@@ -1,80 +1,103 @@
+#### General import for Patents, firms, clubs and articles
+#### Whole file can be run as a script or sections can be run individually
+
+### Utility functions
+
+# Drops rows and columns with all NA values
+# occurs with spreadsheet imports due to 
+# formatting 
+
+dropAllNA <- function(data) {
+	row.ind <- apply(data, 1, function(x) any(!is.na(x)))
+	col.ind <- apply(data, 2, function(x) any(!is.na(x)))
+	data.out <- data[row.ind, ]
+	data.out <- data.out[, col.ind]
+	return(data.out)
+}
 
 
-path.patents.table <- file.path(getwd(), "Data", "Patents", "Patents-Table 1.csv")
+### Patents
+
+### Imports patent data and renames as appropriate
+### Transformation and cleanup are in data.transform.R
+
+
+## Path and read.csv
+
+path.patents <- file.path(getwd(), "Data", "Patents", "Patents-Table 1.csv")
 
 # na.strings modified to include empty date strings
-# Columns 15-19 are empty
-patents.df <- read.csv(path.patents.table, 
-                       as.is = TRUE, na.strings = c("NA", ""))[1:1715, 1:14]
 
-# exact same conversion as on reduced dataset
-langs.str <- c('Britain','Germany','France','United States')
-patents.df[, "Where.filed"] <- langs.str[match(patents.df[, "Where.filed"], c("br", "de", "fr", "us"))]
+patents.df <- read.csv(path.patents, as.is = TRUE, na.strings = c("NA", ""))
 
-# Rename (preliminary)
+patents.df <- dropAllNA(patents.df)
 
-names(patents.df) <- c("Year.protection.applied",
+
+# Rename columns
+
+# drop a number of columns which won't be used for analysis. 
+
+patents.df <- patents.df[, c(7, 1, 2:5, 9)]
+
+names(patents.df) <- c("English.Title.Summary",
+											 "Year.protection.applied",
                        "Filing.Country",
                        "Authors",
                        "Field",
                        "Patent.No",
-                       "More.Date.Info",
-                       "English.Title.Summary",
-                       "Notes",
-                       "Original.Language.Title",
-                       "Supplementary.To",
-                       "Aircraft.Related",
-                       "Date.Applied.For",
-                       "Date.Granted",
-                       "Global.Patent.ID")
+                       "Original.Language.Title")
                        
-## Cleanup rows
 
-patents.df[, "Date.Applied.For"] <- gsub("[^0-9/]", "", patents.df[, "Date.Applied.For"])
-patents.df[, "Date.Granted"] <- gsub("[^0-9/]", "", patents.df[, "Date.Granted"])
-# Drop location information for authors (~ 400 rows)
-patents.df[, "Authors"] <- gsub("\\\n.*$|\\(.*\\)", "", patents.df[, "Authors"])
-
-## Classification 
-
-# The NA string for this field appears to be "NANA"
-# patents.df[grep("NANA", patents.df[, "Field"]), "Field"] <- NA
-
-# You indication the presence of a question mark denoted a potentially unsure 
-# classification. We note this and remove the question mark
-patents.df[, "Classification Unsure"] <- grepl("\\?+", patents.df[, "Field"])
-# also drop trailing spaces. Leave unknowns
-patents.df[, "Field"] <- sub("\\?{2}", "Unknown", patents.df[, "Field"])
-patents.df[, "Field"] <- sub("\\?|\\s+$", "", patents.df[, "Field"])
-
-# Multiple classifications are split most commonly by semi-colons and
-# sometimes by commas
-patents.df[, "Field"] <- gsub(",|\\s+;\\s+", "; ", patents.df[, "Field"])
-
-# casefolding from chartr()'s help page 
-capwords <- function(s, strict = FALSE) {
-  cap <- function(s) paste(toupper(substring(s,1,1)),
-{s <- substring(s,2); if(strict) tolower(s) else s},
-                           sep = "", collapse = " " )
-  sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
-}
-# Be careful, no NA checking
-patents.df[!is.na(patents.df[, "Field"]), "Field"] <- capwords(patents.df[!is.na(patents.df[, "Field"]), "Field"])
+### Clubs
 
 
-### Reduce columns to those which will be meaningful to analysis and graphing
+## Paths and csv
 
-# A number of these are being dropped due to sparseness. Try 
-# apply(patents.df, 2, function(s) sum(is.na(s))) if you're not convinced
+path.clubs <- file.path(getwd(), "Data", "Clubs", "Clubs_v15.30.csv")
 
-patents.df <- patents.df[, c("Year.protection.applied",
-                             "Filing.Country",
-                             "Authors",
-                             "Field",
-                             "Classification Unsure",
-                             "Patent.No",
-                             "More.Date.Info",
-                             "English.Title.Summary",
-                             "Notes",
-                             "Original.Language.Title",
-                             "Aircraft.Related")]
+clubs.df <- read.csv(path.clubs, as.is = TRUE, na.strings = c("NA", ""))
+clubs.df <- dropAllNA(clubs.df)
+
+# Drop Notes (can return to these later but for now they're too much to handle automatically)
+
+clubs.df <- clubs.df[, c(1, 9, 10, 2:5)]
+
+names(clubs.df) <- c("Name",
+										 "Start Year",
+										 "End Year",
+										 "Scope",
+										 "Affiliate of",
+										 "Country",
+										 "City")
+										 
+
+
+
+### Firms
+
+## Paths and csv
+
+path.firms <- file.path(getwd(), "Data", "Firms", "Firms_v46.2.csv")
+
+
+firms.df <- read.csv(path.firms, as.is = TRUE, na.strings = c("NA", ""))
+firms.df <- dropAllNA(firms.df)
+
+# Drop Notes (can return to these later but for now they're too much to handle automatically)
+
+# Reorder a bit to get years together (just cosmetic)
+firms.df <- firms.df[, c(1:3, 9, 4:8)]
+
+names(firms.df) <- c("Short Name",
+										 "Full Name",
+										 "Start Year",
+										 "End Year",
+										 "Country",
+										 "Place",
+										 "Type",
+										 "Founding Info",
+										 "Product Info")
+								 
+										 
+										 
+										 
