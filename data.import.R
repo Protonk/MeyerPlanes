@@ -39,9 +39,10 @@ patents.df <- dropAllNA(patents.df)
 
 patents.df <- patents.df[, c(7, 1, 2:5, 9)]
 
+# Year is the year protection was applied, not filing
 names(patents.df) <- c("English.Title.Summary",
-											 "Year.protection.applied",
-                       "Filing.Country",
+											 "Year",
+                       "Country",
                        "Authors",
                        "Field",
                        "Patent.No",
