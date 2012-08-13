@@ -7,7 +7,7 @@ library(plyr)
 
 ### Utility functions
 
-# casefolding from chartr()'s help page 
+## casefolding from chartr()'s help page 
 # No NA checking done beforehand
 capwords <- function(s, strict = FALSE) {
   cap <- function(s) paste(toupper(substring(s,1,1)),
@@ -16,7 +16,7 @@ capwords <- function(s, strict = FALSE) {
   sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
 }
 
-# Split into multiples 
+## Split into multiples 
 # I'll be doing this for firms, clubs, articles and patents, so this will be turned into a
 # reusable function
 # Breaks columns w/ multiple classifications into single classifications
@@ -48,6 +48,63 @@ breakMultiples <- function(data, column, split.regex = ", | and ", binary = TRUE
   return(df.out)
 }
 
+
+## Combine multiple locations with some other column
+
+# The idea here is to expand on our ddply function for one column
+# We have multiple columns for classification/scope/etc. and we want
+# to sum each up by year or some other column
+
+# Right now we only have the "nrow" function in ddply. future versions will
+# allow for all functions ddply allows
+
+
+ddplyMultiple <- function(data, inputcol, comparison) {
+	# generate breakouts and match with comparison column
+	multiple.breakout <- breakMultiples(data, inputcol)
+	multiple.comb <- cbind(multiple.breakout, data[, comparison])
+	
+	# Create a 0 row data frame so we can populate it in a for loop
+	df.reduced <- data.frame(matrix(NA, ncol = ncol(multiple.breakout) - 1, nrow = 0))
+	# name it based on input
+	working.names <- names(df.reduced) <- c(inputcol,
+																					comparison,
+																					"Count")
+	# For each classifier count the comparisons and add them
+	# to df.reduced
+	for (i in (1:(ncol(multiple.breakout) - 1))) {
+    intermediate.reduced <- ddply(multiple.comb, c(i,ncol(multiple.comb)), "nrow")
+    names(intermediate.reduced) <- working.names
+    df.reduced <- rbind(df.reduced, intermediate.reduced)
+  }
+  # convert from factor											 
+	df.reduced[, comparison] <- as.character(df.reduced[, comparison])
+	return(df.reduced)
+}
+
+
+## Mark "?", drop whitespace and update NA rows
+# Accepts a dataframe and the column of interest. Returns a complete data frame
+# due to the need to add the "unknown" classifier
+
+markUnsure <- function(data, column) {
+	# Classify rows marked with "?"
+	data[, paste("Unknown", column, sep = " ")] <- grepl("\\?", data[, column])
+	# Pull column out to make looking at this simpler
+	int.vector <- data[, column]
+	int.vector <- gsub("\\?", "", int.vector)
+	int.vector <- gsub("^\\s+|\\s+$", "", int.vector)
+	# mark empty elements as NA
+	int.vector[nchar(int.vector) == 0] <- NA
+	data[, column] <- int.vector
+	return(data)
+}
+	
+
+
+
+###### Individual dataset operations
+
 ### Patents
 
 # Matches country codes to full names
@@ -61,13 +118,9 @@ patents.df[, "Authors"] <- gsub("\\\n.*$|\\(.*\\)", "", patents.df[, "Authors"])
 
 ## Field 
 
+# Mark unsure rows, strip whitespace and update NA columns
 
-# You indication the presence of a question mark denoted a potentially unsure 
-# classification. We note this and remove the question mark
-patents.df[, "Classification Unsure"] <- grepl("\\?+", patents.df[, "Field"])
-# also drop trailing spaces. Leave unknowns
-patents.df[, "Field"] <- sub("\\?{2}", "Unknown", patents.df[, "Field"])
-patents.df[, "Field"] <- sub("\\?|\\s+$", "", patents.df[, "Field"])
+patents.df <- markUnsure(patents.df, "Field")
 
 # Multiple classifications are split most commonly by semi-colons and
 # sometimes by commas
@@ -81,37 +134,16 @@ patents.df[!is.na(patents.df[, "Field"]), "Field"] <- capwords(patents.df[!is.na
 
 patents.df[grep("\\?", patents.df[, "Year"]), ] <- NA
 
-### Generate title information from Summary
 
-## Simple table of terms. Potentially useful for visualization
-# lowercase and drop hyphens
-term.table <- table(tolower(gsub("-", " ", patents.df[, "English.Title.Summary"])))
-term.table <- term.table[term.table >= 3]
-term.table <- term.table[order(term.table, decreasing = TRUE)]
-
-## Categories for titles (need input here)
-
-# Right now this is an arbitrary/ad-hoc classification for different titles. 
-# 
-# airships.pat <- "balloon|dirigible|(air|aerial)[- ]?ship|luftschiff|aerostat|floatation"
-# airplane.pat <- "airplane|aeroplane|flugzeug"
-# flying.pat <- "^(flying|aerial)[- ]machine||apparatus|flugapparat|flugmaschine"
-# component.pat <- "device|propell(er|ing)|^apparatus|steering|propulsion|^machine"
 
 
 ### Clubs
 
 ## Scope
 
-# note unknown/potentially unknown classification.
-# Then remove "?s"
-clubs.df[, "Unknown Scope"] <- grepl("\\?", clubs.df[, "Scope"])
-clubs.df[, "Scope"] <- sub("\\?", "", clubs.df[, "Scope"])
+# Mark unsure rows, strip whitespace and update NA columns
 
-
-#trim whitespace
-clubs.df[, "Scope"] <- gsub("^\\s+|\\s+$", "", clubs.df[, "Scope"])
-clubs.df[nchar(clubs.df[, "Scope"]) == 0, "Scope"] <- NA 
+clubs.df <- markUnsure(clubs.df, "Scope")
 
 # cleanup entries
 clubs.df[, "Scope"] <- sub("Sttate", "State", clubs.df[, "Scope"])
@@ -158,14 +190,9 @@ clubs.df[, "Country Factor"] <- factor(clubs.df[, "Country Factor"],
 
 ## Country
 
-# mark unsure and remove
-firms.df[, "Nation Unsure"] <- grepl("\\?", firms.df[, "Country"])
-firms.df[, "Country"] <- sub("\\?", "", firms.df[, "Country"])
+# Mark unsure rows, strip whitespace and update NA columns
 
-# whitespace
-
-firms.df[grepl("^ $", firms.df[, "Country"]), "Country"] <- NA
-firms.df[, "Country"] <- gsub("^\\s|\\s$", "", firms.df[, "Country"])
+firms.df <- markUnsure(firms.df, "Country")
 
 # clean up country listings
 firms.df[, "Country"] <- gsub("^US$|^.USA$", "USA", firms.df[, "Country"])
@@ -203,20 +230,5 @@ firms.df[, "Imputed Year"] <- sub("189$", "1895", firms.df[, "Imputed Year"])
 
 firms.df[nchar(firms.df[, "Imputed Year"]) == 0, "Imputed Year"] <- NA
 
-# multiple locations combined with years
 
-catMultipleCountries <- function() {
-  firms.multiple <- cbind(firms.breakout, firms.df[, "Imputed Year"])
-  names(firms.multiple) <- c(names(firms.breakout), "Year")
-  
-  firms.reduced.final <- data.frame(matrix(NA, ncol = 3, nrow = 0))
-  names(firms.reduced.final) <- c("Country", "Year", "Firm Starts")
-  for (i in (1:(ncol(firms.breakout) - 1))) {
-    firms.reduced <- ddply(firms.multiple, c(i,5), "nrow")
-    names(firms.reduced) <- c("Country", "Year", "Firm Starts")
-    firms.reduced.final <- rbind(firms.reduced.final, firms.reduced)
-  }
-  firms.reduced.final[, "Year"] <- as.numeric(as.character(firms.reduced.final[, "Year"]))
-  return(firms.reduced.final)
-}
 
