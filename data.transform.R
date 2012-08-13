@@ -132,8 +132,12 @@ patents.df[!is.na(patents.df[, "Field"]), "Field"] <- capwords(patents.df[!is.na
 
 ## Years
 
+# notations for years with question-marks rare enough to be simply marked NA.
+
 patents.df[grep("\\?", patents.df[, "Year"]), ] <- NA
 
+# the current dataset doesn't have any non-matching rows but this is a reasonable first filter.
+patents.df[, "Year"] <- as.numeric(str_match(patents.df[, "Year"], "[0-9]{4}"))
 
 
 
@@ -152,15 +156,6 @@ clubs.df[, "Scope"] <- sub(" Club|, Multi-State", "", clubs.df[, "Scope"])
 clubs.df[, "Scope"] <- sub("Univesrsity", "University", clubs.df[, "Scope"])
 
 
-
-## Years
-
-# TODO: Note "?"
-#       establish cutoff years of interest
-#       convert to numeric
-
-# Rough matching for years. Warns about warnings introduced. 
-clubs.df[, "Imputed Year"] <- as.numeric(str_match(clubs.df[, "Start Year"], "\\d{4}"))
 
 ## Country
 
@@ -183,6 +178,22 @@ clubs.df[, "Country Factor"] <- factor(clubs.df[, "Country Factor"],
                                                   "United Kingdom",
                                                   "United States",
                                                   "Other"))
+
+## Years
+
+# TODO: Note "?"
+#       establish cutoff years of interest
+#       convert to numeric
+
+# Mark "?" years as well as years which are noted as "1890 or earlier"
+ 
+clubs.df <- markUnsure(clubs.df, "Start Year")
+clubs.df[, "Unknown Start Year"] <- clubs.df[, "Unknown Start Year"] | grepl("earlier", clubs.df[, "Start Year"])
+
+# Rough matching for years.
+clubs.df[, "Imputed Year"] <- as.numeric(str_match(clubs.df[, "Start Year"], "[0-9]{4}"))
+
+
 
 
 ### Firms
@@ -214,21 +225,8 @@ firms.breakout <- breakMultiples(data = firms.df, column = "Country")
 # Generate column for imputed years as we'll
 # drop a number of qualifiers
 
-firms.df[, "Imputed Year"] <- gsub("\\D", "", firms.df[, "Start Year"])
+firms.df[, "Imputed Year"] <- as.numeric(str_match(firms.df[, "Start Year"], "[0-9]{4}"))
 
-# average year ranges
-
-ranged <- firms.df[grep("\\d{8}", firms.df[, "Imputed Year"]), "Imputed Year"]
-
-firms.df[grep("\\d{8}", firms.df[, "Imputed Year"]), "Imputed Year"] <- round((as.numeric(substr(ranged, 0, 4)) + as.numeric(substr(ranged, 5, 8)))/2)
-
-# 189X to 1895
-
-firms.df[, "Imputed Year"] <- sub("189$", "1895", firms.df[, "Imputed Year"])
-
-# Mark NA
-
-firms.df[nchar(firms.df[, "Imputed Year"]) == 0, "Imputed Year"] <- NA
 
 
 
