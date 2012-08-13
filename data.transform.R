@@ -114,7 +114,7 @@ patents.df[, "Country"] <- langs.str[match(patents.df[, "Country"], c("br", "de"
 ## Authors
 
 # Drop location information for authors (~ 400 rows)
-patents.df[, "Authors"] <- gsub("\\\n.*$|\\(.*\\)", "", patents.df[, "Authors"])
+patents.df[, "Authors"] <- gsub("\\\n.*$|\\([^()]*\\)", "", patents.df[, "Authors"])
 
 ## Field 
 
@@ -160,7 +160,7 @@ clubs.df[, "Scope"] <- sub("Univesrsity", "University", clubs.df[, "Scope"])
 #       convert to numeric
 
 # Rough matching for years. Warns about warnings introduced. 
-clubs.df[, "Matched Start Year"] <- as.numeric(str_match(clubs.df[, "Start Year"], "\\d{4}"))
+clubs.df[, "Imputed Year"] <- as.numeric(str_match(clubs.df[, "Start Year"], "\\d{4}"))
 
 ## Country
 
