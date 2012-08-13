@@ -100,5 +100,16 @@ names(firms.df) <- c("Short Name",
 										 "Product Info")
 								 
 										 
-										 
+### Articles
+
+path.articles <- file.path(getwd(), "Data", "Brockett", "articles0808.csv")
+
+# right now titles are garbled due to encoding issues.
+# NA strings for "0" and "-" in order to easily capture and note these strings
+articles.df <- read.csv(path.articles, header = FALSE, as.is = TRUE, na.strings = c(NA, "-", "0"))
+
+names(articles.df) <- c("Identifier", "Year", "Country", "Authors", "Field", "Title")
+
+
+
 										 
