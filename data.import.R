@@ -108,8 +108,9 @@ path.articles <- file.path(getwd(), "Data", "Brockett", "articles0808.csv")
 # NA strings for "0" and "-" in order to easily capture and note these strings
 articles.df <- read.csv(path.articles, header = FALSE, as.is = TRUE, na.strings = c(NA, "-", "0"))
 
-names(articles.df) <- c("Identifier", "Year", "Country", "Authors", "Field", "Title")
+names(articles.df) <- c("Identifier", "Year", "Language", "Authors", "Field", "Title")
 
-
+# drop empty row with errant multi-byte character in the Identifier col.
+articles.df <- articles.df[!grepl("\\D", articles.df[, "Identifier"]), ] 
 
 										 

@@ -229,4 +229,34 @@ firms.df[, "Imputed Year"] <- as.numeric(str_match(firms.df[, "Start Year"], "[0
 
 
 
+### Articles
+
+## Languages
+
+art.languages <- c("French", "English", "German", "Italian", "Russian",
+									 "Swedish", "Spanish", "Portuguese", "Dutch", "Unknown",
+									 "Unknown", "Latin", "Czech", "French", "Multiple")
+
+# Match numbering to strings. The second argument to match() is a bit tricky
+# because we skip some numbers in the db so we can't simply take a sequence of 
+# numbers from 1-15.
+articles.df[, "Language"] <- art.languages[match(articles.df[, "Language"],  names(table(articles.df[, "Language"])))]
+articles.df[, "Language"] <- factor(articles.df[, "Language"])
+
+
+## Field
+
+# Proper NA string for empty Field cells
+# Will warn if encoding isn't figured out. 
+
+articles.df[grepl("^\\s*$", articles.df[, "Field"]), "Field"] <- NA
+
+
+
+
+
+
+
+
+
 
