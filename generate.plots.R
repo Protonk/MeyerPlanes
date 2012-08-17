@@ -3,54 +3,59 @@
 ### Preplotting
 
 ## Preplot functions for by year/country (or year/field, etc.) plots
-## Generates dataset and ggplot object with correct title for each type
-## Looks needlessly complex but cuts down on a lot of boilerplate later on 
+## Generates list for preplotting so we can pluck out variables of interest for later.
 
-# Arguments
-# data.in: one of the four big dataframes
-# by: Country or Field or potentially Author. A year varying column to plot/facet against
-# start: start year
-# end: end year
-
-# we assume some column name consistency. I'm not there yet on the processing but I'll
-# get there shortly
-# the cool thing is you can just hit preplotGen() + geom_line() and boom, there's a lineplot
-# of patents by countries over time. 
-
-preplotGen <- function(data.in = patents.df, by = "Country", start = 1850, end = 1916) {
-	# generate the titles automatically and size them properly.
-	# I may drop the sizing element later
-	titleGen <- function(type, start, end) {
-		title.text <- switch(type,
-												 Patents = paste0("Aeronautically-relevant patents by country ", start, '-', end),
-												 Clubs = paste0("Aeronautical club starts by country ", start, '-', end),
-												 Firms = paste0("Aeronautical firm starts by country ", start, '-', end),
-												 Articles = paste0("Aeronautically-relevant articles by language ", start, '-', end))
-		return(opts(title = title.text, plot.title = theme_text(size=20)))
-	}					
+preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, end = 1916) {
 	# deparse(substitute()) is an R trick to get a character representation of an object name
 	type.inferred <- switch(deparse(substitute(data.in)),
 													patents.df = "Patents",
 													clubs.df = "Clubs",
 													firms.df = "Firms",
-													articles.df = "Articles")									
-	# Split the dataset by year and the "by" column and generate a dataframe of counts
-	preplot.df <- ddply(data.in, c("Year", by), "nrow")
+													articles.df = "Articles")		
+	# Range of years
+	year.range <- c(start, end)																			
+	# Split the dataset by year and the "by.var" column and generate a dataframe of counts
+	preplot.df <- ddply(data.in, c("Year", by.var), "nrow")
 	preplot.df <- preplot.df[complete.cases(preplot.df), ]
-	names(preplot.df) <- c("Year", by, type.inferred)
+	names(preplot.df) <- c("Year", by.var, type.inferred)
 	preplot.df[, "Year"] <- as.numeric(preplot.df[, "Year"])
-	preplot.df[, by] <- factor(preplot.df[, by])
+	preplot.df[, by.var] <- factor(preplot.df[, by.var])
 	# subset based on our year constraints
 	preplot.df <- subset(preplot.df, Year >= start & Year <= end)
-	# we generate and return a ggplot object. This lets us bundle the title together so we're 
-	# not holding on to that information in two places								
-	ggplot.obj <- ggplot(data = preplot.df, aes_string(x = "Year", y = type.inferred, colour = by))
-	return(ggplot.obj + titleGen(type = type.inferred, start = start, end = end))
+
+	# Title text
+	by.var.text <- paste0(tolower(by.var), " ", start, '-', end)
+	type.text <- switch(type.inferred,
+											 Patents = "Aeronautically-relevant patents by",
+											 Clubs = "Aeronautical club starts by",
+											 Firms = "Aeronautical firm starts by",
+											 Articles = "Aeronautically-relevant articles by")
+	# return a list object so we can pluck out what we need to plot later 
+	# and not carry arguments around							 
+	return(list(Data = preplot.df,
+							Type = type.inferred,
+							Range = year.range,
+							By = by.var,
+							Title = paste(type.text, by.var.text, sep = " ")))
 }
 
 
 
+
+
 ### Themes
+
+## General theme options
+
+axis.options <- opts(axis.text.x  = theme_text(size = 14))
+				
+
+inset.legend <- opts(legend.background = theme_rect(fill="white"), 
+                     legend.justification=c(0,1), legend.position=c(0,1), 
+                     legend.text = theme_text(size = 16)) 
+
+title.theme <- opts(plot.title = theme_text(size=20))
+
 
 ## Web/Presentation Theme
 ## These will retain the gray background and some of the major/minor lines
@@ -58,24 +63,34 @@ preplotGen <- function(data.in = patents.df, by = "Country", start = 1850, end =
 
 
 
-				
-
-
-
-
-
-
-
-inset.legend <- opts(legend.background = theme_rect(fill="white"), 
-                     legend.justification=c(0,1), legend.position=c(0,1), 
-                     legend.text = theme_text(size = 16)) 
 
 ### Actual plots
 
-country.plot <- ggplot(data = subset(by.country.df, Year > beg_patents & Year <= end_patents), aes(Year, Patents, colour = Country)) +
-  geom_line(size = 1) + xlab("") + ylab('Patents') +
-  		 opts(title = country.title, plot.title = theme_text(size=20),
-       axis.text.x  = theme_text(size = 14))
+
+# Plots by year should come from a common expectation of structure.
+# Year is the cleaned up start year, publication year or year applied (depending on the dataset)
+# Country (or language, or anything else)
+
+# Generate ggplot objects with the correct mapping and scale.
+# we can now just save these or type plotObjGen() + geom_line() at the console
+# with the right arguments and get the plot we want.
+
+plotObjGen <- function(fill = FALSE, ...) {
+	preplot.list <- preplotGen(...)
+	if (fill) {	
+		ggobj <- ggplot(data = preplot.list$Data, aes_string(x = "Year",
+																												 y = preplot.list$Type,
+																												 fill = preplot.list$By))
+	} else {
+		ggobj <- ggplot(data = preplot.list$Data, aes_string(x = "Year",
+																												 y = preplot.list$Type,
+																												 colour = preplot.list$By))																											 
+	}
+	ggobj <- ggobj + xlab('') + ylab(preplot.list$Type) + opts(title = preplot.list$Title)
+	return(ggobj)													
+}
+
+  		 
 
 inset.country <- country.plot + opts(legend.background = theme_rect(fill="white"), 
                                      legend.justification=c(0,1), legend.position=c(0,1), 
