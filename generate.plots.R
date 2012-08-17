@@ -56,7 +56,7 @@ plotObjGen <- function(preplot, fill = FALSE) {
 		ggobj <- ggplot(data = preplot.list$Data, 
 									  aes_string(x = "Year", y = preplot.list$Type, colour = preplot.list$By))																											 
 	}
-	ggobj <- ggobj + xlab('') + ylab(preplot.list$Type) + opts(title = preplot.list$Title)
+	ggobj <- ggobj + xlab('') + ylab(paste(preplot.list$Type, "per year")) + opts(title = preplot.list$Title)
 	return(ggobj)													
 }
 
@@ -115,14 +115,14 @@ patents.country.line <- plotObjGen(preplot = patents.list, fill = FALSE)  + geom
 
 ## Adding theme and layer changes
 
-patents.country.fill + inset.legend
+patents.country.inset <- patents.country.fill + inset.legend
 
 ### Faceting
 
 # Somewhat more complicated due to the nature of facet_grid()
 # the options drop the facet labels 
 
-patents.country.fill + facet_grid(paste(patents.list$By, "~ .") , labeller = label_bquote('')) +
+patents.country.facet <- patents.country.fill + facet_grid(paste(patents.list$By, "~ .") , labeller = label_bquote('')) +
  insetFacetLabel(patents.list) + opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 
