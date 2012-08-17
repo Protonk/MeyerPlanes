@@ -14,6 +14,8 @@
 
 # we assume some column name consistency. I'm not there yet on the processing but I'll
 # get there shortly
+# the cool thing is you can just hit preplotGen() + geom_line() and boom, there's a lineplot
+# of patents by countries over time. 
 
 preplotGen <- function(data.in = patents.df, by = "Country", start = 1850, end = 1916) {
 	# generate the titles automatically and size them properly.
@@ -27,7 +29,7 @@ preplotGen <- function(data.in = patents.df, by = "Country", start = 1850, end =
 		return(opts(title = title.text, plot.title = theme_text(size=20)))
 	}					
 	# deparse(substitute()) is an R trick to get a character representation of an object name
-	type.inferred <- switch(EXPR = deparse(substitute(data.in)),
+	type.inferred <- switch(deparse(substitute(data.in)),
 													patents.df = "Patents",
 													clubs.df = "Clubs",
 													firms.df = "Firms",
