@@ -25,7 +25,7 @@ preplotGen <- function(data.in = patents.df, by = "Country", start = 1850, end =
 												 Patents = paste0("Aeronautically-relevant patents by country ", start, '-', end),
 												 Clubs = paste0("Aeronautical club starts by country ", start, '-', end),
 												 Firms = paste0("Aeronautical firm starts by country ", start, '-', end),
-												 Articles = paste0("Aeronautically-relevant articles by country ", start, '-', end))
+												 Articles = paste0("Aeronautically-relevant articles by language ", start, '-', end))
 		return(opts(title = title.text, plot.title = theme_text(size=20)))
 	}					
 	# deparse(substitute()) is an R trick to get a character representation of an object name
@@ -39,7 +39,7 @@ preplotGen <- function(data.in = patents.df, by = "Country", start = 1850, end =
 	preplot.df <- preplot.df[complete.cases(preplot.df), ]
 	names(preplot.df) <- c("Year", by, type.inferred)
 	preplot.df[, "Year"] <- as.numeric(preplot.df[, "Year"])
-	preplot.df[, "Country"] <- factor(preplot.df[, "Country"])
+	preplot.df[, by] <- factor(preplot.df[, by])
 	# subset based on our year constraints
 	preplot.df <- subset(preplot.df, Year >= start & Year <= end)
 	# we generate and return a ggplot object. This lets us bundle the title together so we're 

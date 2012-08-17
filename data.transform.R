@@ -191,7 +191,7 @@ clubs.df <- markUnsure(clubs.df, "Start Year")
 clubs.df[, "Unknown Start Year"] <- clubs.df[, "Unknown Start Year"] | grepl("earlier", clubs.df[, "Start Year"])
 
 # Rough matching for years.
-clubs.df[, "Imputed Year"] <- as.numeric(str_match(clubs.df[, "Start Year"], "[0-9]{4}"))
+clubs.df[, "Year"] <- as.numeric(str_match(clubs.df[, "Start Year"], "[0-9]{4}"))
 
 
 
@@ -225,7 +225,7 @@ firms.breakout <- breakMultiples(data = firms.df, column = "Country")
 # Generate column for imputed years as we'll
 # drop a number of qualifiers
 
-firms.df[, "Imputed Year"] <- as.numeric(str_match(firms.df[, "Start Year"], "[0-9]{4}"))
+firms.df[, "Year"] <- as.numeric(str_match(firms.df[, "Start Year"], "[0-9]{4}"))
 
 
 
