@@ -1,5 +1,7 @@
 # Plotting script for patents.df 
 
+library(ggplot2) 
+
 ### Preplotting
 
 ## Preplot functions for by year/country (or year/field, etc.) plots

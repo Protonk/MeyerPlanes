@@ -63,7 +63,7 @@ ddplyMultiple <- function(data, inputcol, comparison) {
 	# generate breakouts and match with comparison column
 	multiple.breakout <- breakMultiples(data, inputcol)
 	multiple.comb <- cbind(multiple.breakout, data[, comparison])
-	
+
 	# Create a 0 row data frame so we can populate it in a for loop
 	df.reduced <- data.frame(matrix(NA, ncol = ncol(multiple.breakout) - 1, nrow = 0))
 	# name it based on input
@@ -109,7 +109,7 @@ markUnsure <- function(data, column) {
 ### Patents
 
 # Matches country codes to full names
-langs.str <- c('Britain','Germany','France','United States')
+langs.str <- c('United Kingdom','Germany','France','United States')
 patents.df[, "Country"] <- langs.str[match(patents.df[, "Country"], c("br", "de", "fr", "us"))]
 
 ## Authors
@@ -213,11 +213,18 @@ firms.df[, "Country"] <- gsub("Germanu", "Germany", firms.df[, "Country"])
 firms.df[, "Country"] <- gsub(" \\([^()]*\\)", "", firms.df[, "Country"])
 firms.df[, "Country"] <- gsub("Czechoslo-\\s+vakia", "Czechoslovakia", firms.df[, "Country"])
 
+# Standardize names to match patents and clubs
+# bit trickier due to splits so we use str_replace() instead of sub()
+# the syntax is different but the function is similar
 
+firms.df[, "Country"] <- str_replace(firms.df[, "Country"], "USA", "United States")
+firms.df[, "Country"] <- str_replace(firms.df[, "Country"], "UK", "United Kingdom")
 
-# separators and split listings
+# separators for split listings
 
 firms.df[, "Country"] <- sub(";", ",", firms.df[, "Country"])
+
+
 
 
 ## Years
