@@ -6,6 +6,7 @@
 ## Generates list for preplotting so we can pluck out variables of interest for later.
 
 preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, end = 1916) {
+	
 	# deparse(substitute()) is an R trick to get a character representation of an object name
 	type.inferred <- switch(deparse(substitute(data.in)),
 													patents.df = "Patents",
@@ -14,16 +15,22 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 													articles.df = "Articles")		
 	# Range of years
 	year.range <- c(start, end)																			
-	# Split the dataset by year and the "by.var" column and generate a dataframe of counts
+	##  Split the dataset by year and the "by.var" column and generate a dataframe of counts
+	
 	preplot.df <- ddply(data.in, c("Year", by.var), "nrow")
-	preplot.df <- preplot.df[complete.cases(preplot.df), ]
+
 	names(preplot.df) <- c("Year", by.var, type.inferred)
+	
+	# Cleanup
+	preplot.df <- preplot.df[complete.cases(preplot.df), ]
 	preplot.df[, "Year"] <- as.numeric(preplot.df[, "Year"])
 	preplot.df[, by.var] <- factor(preplot.df[, by.var])
+	
 	# subset based on our year constraints
 	preplot.df <- subset(preplot.df, Year >= start & Year <= end)
 
 	# Title text
+	
 	by.var.text <- paste0(tolower(by.var), " ", start, '-', end)
 	type.text <- switch(type.inferred,
 											 Patents = "Aeronautically-relevant patents by",
@@ -48,24 +55,28 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 # with the right arguments and get the plot we want.
 
 plotObjGen <- function(preplot, fill = FALSE) {
-	preplot.list <- preplot
+	Count <- preplot$Type
+	By <- preplot$By
+	
 	if (fill) {	
-		ggobj <- ggplot(data = preplot.list$Data, 
-									  aes_string(x = "Year", y = preplot.list$Type, fill = preplot.list$By))
+		ggobj <- ggplot(data = preplot$Data, 
+									  aes_string(x = "Year", y = Count, fill = By))
 	} else {
-		ggobj <- ggplot(data = preplot.list$Data, 
-									  aes_string(x = "Year", y = preplot.list$Type, colour = preplot.list$By))																											 
+		ggobj <- ggplot(data = preplot$Data, 
+									  aes_string(x = "Year", y = Count, colour = By))																											 
 	}
-	ggobj <- ggobj + xlab('') + ylab(paste(preplot.list$Type, "per year")) + opts(title = preplot.list$Title)
+	ggobj <- ggobj + xlab('') + ylab(paste(Count, "per year")) + opts(title = preplot$Title)
 	return(ggobj)													
 }
 
 # add facet labels
 insetFacetLabel <- function(preplot) {
+	By <-preplot$By
 	# Text location generated based on ranges of inputs
-	text.loc <- c(quantile(preplot$Data[, "Year"], 0.1),
-								0.6*max(ddply(preplot$Data, c(preplot$By), function(x) max(x[, preplot$Type]))[, 2]))
-	return(geom_text(data = preplot$Data, aes_string(x = text.loc[1], y = text.loc[2], label = preplot$By, colour = preplot$By), show_guide = FALSE, hjust = 0, size = 7))    
+	text.loc <- c(min(preplot$Data[, "Year"]) + 1,
+								0.6*max(ddply(preplot$Data, c(By), function(x) max(x[, preplot$Type]))[, 2]))
+	return(list(Labels = geom_text(data = preplot$Data, aes_string(x = text.loc[1], y = text.loc[2], label = By, colour = By), show_guide = FALSE, hjust = 0, size = 7),
+							Facet = facet_grid(paste(By, "~ .") , labeller = label_bquote(''))))    
 }
 
 ### Themes
@@ -117,20 +128,44 @@ patents.country.line <- plotObjGen(preplot = patents.list, fill = FALSE)  + geom
 
 patents.country.inset <- patents.country.fill + inset.legend
 
-### Faceting
+## Faceting
 
 # Somewhat more complicated due to the nature of facet_grid()
 # the options drop the facet labels 
 
-patents.country.facet <- patents.country.fill + facet_grid(paste(patents.list$By, "~ .") , labeller = label_bquote('')) +
- insetFacetLabel(patents.list) + opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
+patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list)$Facet + insetFacetLabel(patents.list)$Labels +
+ opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 
 
 
 
+### Clubs
+
+## Preplotting
 
 
+clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country_Factor", start = 1880, end = 1916)
+
+# The variable has a space. However we also don't want
+# the title to be "country factor" so we can change it easily here
+
+clubs.list$Title <- sub(".factor ", " ", clubs.list$Title)
+
+
+# Bar chart, similar to the patent plot
+
+clubs.country.fill <- plotObjGen(preplot = clubs.list, fill = TRUE) + geom_bar(stat = "identity")
+
+## Theme and layer changes are likewise relient on the same syntax and functions
+
+clubs.country.inset <- clubs.country.fill + inset.legend
+
+### faceting
+
+
+clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list)$Facet + insetFacetLabel(clubs.list)$Labels +
+	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 
 
