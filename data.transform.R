@@ -79,6 +79,7 @@ ddplyMultiple <- function(data, inputcol, comparison) {
   }
   # convert from factor											 
 	df.reduced[, comparison] <- as.character(df.reduced[, comparison])
+	df.reduced <- df.reduced[, c(comparison, inputcol, "Count")]
 	return(df.reduced)
 }
 
@@ -210,13 +211,13 @@ firms.df[, "Country"] <- gsub("^US$|^.USA$", "USA", firms.df[, "Country"])
 firms.df[, "Country"] <- gsub(".*[Hh]ungary|^AH$", "Austria-Hungary", firms.df[, "Country"])
 firms.df[, "Country"] <- gsub("Germanu", "Germany", firms.df[, "Country"])
 firms.df[, "Country"] <- gsub(" \\([^()]*\\)", "", firms.df[, "Country"])
+firms.df[, "Country"] <- gsub("Czechoslo-\\s+vakia", "Czechoslovakia", firms.df[, "Country"])
+
 
 
 # separators and split listings
 
 firms.df[, "Country"] <- sub(";", ",", firms.df[, "Country"])
-
-firms.breakout <- breakMultiples(data = firms.df, column = "Country")
 
 
 ## Years

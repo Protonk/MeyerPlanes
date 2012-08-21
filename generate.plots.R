@@ -16,9 +16,11 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 	# Range of years
 	year.range <- c(start, end)																			
 	##  Split the dataset by year and the "by.var" column and generate a dataframe of counts
-	
-	preplot.df <- ddply(data.in, c("Year", by.var), "nrow")
-
+	if (type.inferred == "Firms") {
+		preplot.df <- ddplyMultiple(data = data.in, inputcol = by.var, comparison = "Year")
+	} else {	
+		preplot.df <- ddply(data.in, c("Year", by.var), "nrow")
+	}
 	names(preplot.df) <- c("Year", by.var, type.inferred)
 	
 	# Cleanup
@@ -168,4 +170,34 @@ clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list)$Facet + 
 	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 
+### Firms
 
+## Preplotting
+
+# Firm preplotting is a bit different to the large number of (coded) multinational firms
+# and the large number of countries with few firms
+
+firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1880, end = 1916)
+
+
+# Set a threshold (you can change this) for minimum number of firms. We save it as 
+# an object so we can put it in the footnote later
+firm.threshold <- 10
+
+countries.retained <- names(table(firms.list$Data[, "Country"])[table(firms.list$Data[, "Country"]) > firm.threshold])
+
+firms.list$Data <- firms.list$Data[firms.list$Data[, "Country"] %in% countries.retained, ]
+
+# Bar chart, similar to the patent plot
+
+firms.country.fill <- plotObjGen(preplot = firms.list, fill = TRUE) + geom_bar(stat = "identity")
+
+## Theme and layer changes are likewise relient on the same syntax and functions
+
+firms.country.inset <- firms.country.fill + inset.legend
+
+### faceting
+
+
+firms.country.facet <- firms.country.fill + insetFacetLabel(firms.list)$Facet + insetFacetLabel(firms.list)$Labels +
+	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
