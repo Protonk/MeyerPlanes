@@ -148,13 +148,16 @@ patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list)$F
 
 ## Preplotting
 
+# I start at 1895 for firms because we don't see anything much before then
+clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, end = 1916)
 
-clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country_Factor", start = 1880, end = 1916)
+# Set a threshold (you can change this) for minimum number of firms. We save it as 
+# an object so we can put it in the footnote later
+club.threshold <- 6
 
-# The variable has a space. However we also don't want
-# the title to be "country factor" so we can change it easily here
+club.countries.retained <- names(table(clubs.df[, "Country"])[order(table(clubs.df[, "Country"]), decreasing = TRUE)][1:club.threshold])
 
-clubs.list$Title <- sub(".factor ", " ", clubs.list$Title)
+clubs.list$Data <- clubs.list$Data[clubs.list$Data[, "Country"] %in% club.countries.retained, ]
 
 
 # Bar chart, similar to the patent plot
@@ -176,19 +179,19 @@ clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list)$Facet + 
 
 ## Preplotting
 
+# I start at 1895 for firms because we don't see anything much before then
+firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1895, end = 1916)
+
 # Firm preplotting is a bit different to the large number of (coded) multinational firms
-# and the large number of countries with few firms
-
-firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1880, end = 1916)
 
 
-# Set a threshold (you can change this) for minimum number of firms. We save it as 
-# an object so we can put it in the footnote later
-firm.threshold <- 10
+# Top 6 countries plotted. We can do more than 6 for some plots but 6 is sensible
 
-countries.retained <- names(table(firms.list$Data[, "Country"])[table(firms.list$Data[, "Country"]) > firm.threshold])
+firm.threshold <- 6
 
-firms.list$Data <- firms.list$Data[firms.list$Data[, "Country"] %in% countries.retained, ]
+firm.countries.retained <- names(table(firms.df[, "Country"])[order(table(firms.df[, "Country"]), decreasing = TRUE)][1:firm.threshold])
+
+firms.list$Data <- firms.list$Data[firms.list$Data[, "Country"] %in% firm.countries.retained, ]
 
 # Bar chart, similar to the patent plot
 

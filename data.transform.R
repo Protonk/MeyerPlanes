@@ -166,19 +166,16 @@ clubs.df[, "Country"] <- sub("UISA|^US$", "USA", clubs.df[, "Country"])
 clubs.df[, "Country"] <- sub("[Gg]er(man$|many-|mamy|manu)", "Germany", clubs.df[, "Country"])
 clubs.df[, "Country"] <- sub("England,\\s?GB,\\s?UK.?$", "England, GB, UK", clubs.df[, "Country"])
 
-# Build simplified Country factor
-clubs.df[, "Country_Factor"] <- "Other"
-clubs.df[grepl("UK", clubs.df[, "Country"]), "Country_Factor"] <- "United Kingdom"
-clubs.df[grepl("Germany", clubs.df[, "Country"]), "Country_Factor"] <- "Germany"
-clubs.df[grepl("France", clubs.df[, "Country"]), "Country_Factor"] <- "France"
-clubs.df[grepl("US", clubs.df[, "Country"]), "Country_Factor"] <- "United States"
+# Replace country labels wholesale.
+# I may go back and change this but for now we're a little simpler
+clubs.df[grepl("UK", clubs.df[, "Country"]), "Country"] <- "United Kingdom"
+clubs.df[grepl("Germany", clubs.df[, "Country"]), "Country"] <- "Germany"
+clubs.df[grepl("France", clubs.df[, "Country"]), "Country"] <- "France"
+clubs.df[grepl("US", clubs.df[, "Country"]), "Country"] <- "United States"
+# We list both Austria and Hungary for club location originally (but not for firms)
+clubs.df[grepl("Austria-Hungary", clubs.df[, "Country"]), "Country"] <- "Austria-Hungary"
 
-clubs.df[, "Country_Factor"] <- factor(clubs.df[, "Country_Factor"],
-                                       levels = c("Germany",
-                                                  "France",
-                                                  "United Kingdom",
-                                                  "United States",
-                                                  "Other"))
+
 
 ## Years
 
