@@ -110,8 +110,10 @@ articles.df <- read.csv(path.articles, header = FALSE, as.is = TRUE, na.strings 
 
 names(articles.df) <- c("Identifier", "Year", "Language", "Authors", "Field", "Title")
 
-# drop empty row with errant multi-byte character in the Identifier col.
-articles.df <- articles.df[!grepl("\\D", articles.df[, "Identifier"]), ] 
+# iconv() can convert the formatting over, no problem. No more complaints
+articles.df <- data.frame(llply(articles.df, function(x) iconv(x, "latin1", "UTF-8")), stringsAsFactors = FALSE)
+
+
 
 
 ### Exhibitions
