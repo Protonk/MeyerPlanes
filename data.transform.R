@@ -258,10 +258,20 @@ articles.df[grepl("^\\s*$", articles.df[, "Field"]), "Field"] <- NA
 
 
 
+### Exhibitions
 
+## Country
+# Normalize country names from abbreviations
+exhibition.countries <- c("United Kingdom", "France", "United States", "Belgium", NA, "Russia", "Germany", "Switzerland", "Canada")
 
+exhibits.df[, "Country"] <- exhibition.countries[match(exhibits.df[, "Country"], c("Br", "Fr", "US", "Belgium", NA, "Ru", "De", "Sw", "Ca"))]
 
+## Year 
 
+exhibits.df[, "Year Unsure"] <- grepl("\\?|~|;", exhibits.df[, "Year"])
+
+# Drops all but the first year noted.
+exhibits.df[, "Year"] <- gsub("^\\D?([0-9]{4}).*", "\\1", exhibits.df[, "Year"])
 
 
 

@@ -113,4 +113,28 @@ names(articles.df) <- c("Identifier", "Year", "Language", "Authors", "Field", "T
 # drop empty row with errant multi-byte character in the Identifier col.
 articles.df <- articles.df[!grepl("\\D", articles.df[, "Identifier"]), ] 
 
-										 
+
+### Exhibitions
+
+## Paths and csv
+
+path.exhibitions <- file.path(getwd(), "Data", "Exhibitions", "Exhibitions_0f.csv")
+
+exhibits.df <- read.csv(path.exhibitions, as.is = TRUE, na.strings = c("NA", ""))
+exhibits.df <- dropAllNA(exhibits.df)
+
+
+names(exhibits.df) <- c("Name", 
+													 "Type", 
+													 "Place", 
+													 "Country", 
+													 "Year", 
+													 "Month", 
+													 "Start.day", 
+													 "Days", 
+													 "Notes......prominent.in.lit.", 
+													 "Sources", 
+													 "X")
+exhibits.df <- exhibits.df[, 1:8]
+
+													 

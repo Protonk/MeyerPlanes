@@ -54,25 +54,6 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 # Year is the cleaned up start year, publication year or year applied (depending on the dataset)
 # Country (or language, or anything else)
 
-# Generate ggplot objects with the correct mapping and scale.
-# we can now just save these or type plotObjGen() + geom_line() at the console
-# with the right arguments and get the plot we want.
-
-plotObjGen <- function(preplot, fill = FALSE) {
-	Count <- preplot$Type
-	By <- preplot$By
-	
-	if (fill) {	
-		ggobj <- ggplot(data = preplot$Data, 
-									  aes_string(x = "Year", y = Count, fill = By))
-	} else {
-		ggobj <- ggplot(data = preplot$Data, 
-									  aes_string(x = "Year", y = Count, colour = By))																											 
-	}
-	ggobj <- ggobj + xlab('') + ylab(paste(Count, "per year")) + opts(title = preplot$Title)
-	return(ggobj)													
-}
-
 # add facet labels
 insetFacetLabel <- function(preplot) {
 	By <-preplot$By
@@ -122,10 +103,11 @@ patents.list <- preplotGen(data.in = patents.df, by.var = "Country", start = 186
 # We've already done that with ddply
 # "stack" is the default presentation
 
-patents.country.fill <- plotObjGen(preplot = patents.list, fill = TRUE)  + geom_bar(stat = "identity")
 
-# Line plot. 
-patents.country.line <- plotObjGen(preplot = patents.list, fill = FALSE)  + geom_line(size = 1)
+patents.country.fill <- ggplot(data = patents.list$Data, 
+															 aes_string(x = "Year", y = patents.list$Type, fill = patents.list$By)) +
+													xlab("") + ylab(paste(patents.list$Type, "per year")) + 
+													opts(title = patents.list$Title) + geom_bar(stat = "identity")
 
 
 ## Adding theme and layer changes
@@ -162,7 +144,12 @@ clubs.list$Data <- clubs.list$Data[clubs.list$Data[, "Country"] %in% club.countr
 
 # Bar chart, similar to the patent plot
 
-clubs.country.fill <- plotObjGen(preplot = clubs.list, fill = TRUE) + geom_bar(stat = "identity")
+clubs.country.fill <- ggplot(data = clubs.list$Data, 
+															 aes_string(x = "Year", y = clubs.list$Type, fill = clubs.list$By)) +
+													xlab("") + ylab(paste(clubs.list$Type, "per year")) + 
+													opts(title = clubs.list$Title) + geom_bar(stat = "identity")
+
+
 
 ## Theme and layer changes are likewise relient on the same syntax and functions
 
@@ -195,7 +182,10 @@ firms.list$Data <- firms.list$Data[firms.list$Data[, "Country"] %in% firm.countr
 
 # Bar chart, similar to the patent plot
 
-firms.country.fill <- plotObjGen(preplot = firms.list, fill = TRUE) + geom_bar(stat = "identity")
+firms.country.fill <- ggplot(data = firms.list$Data, 
+															 aes_string(x = "Year", y = firms.list$Type, fill = firms.list$By)) +
+													xlab("") + ylab(paste(firms.list$Type, "per year")) + 
+													opts(title = firms.list$Title) + geom_bar(stat = "identity")
 
 ## Theme and layer changes are likewise relient on the same syntax and functions
 
