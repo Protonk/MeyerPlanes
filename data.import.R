@@ -1,6 +1,11 @@
 #### General import for Patents, firms, clubs and articles
 #### Whole file can be run as a script or sections can be run individually
 
+### Dependencies
+
+# Data munching library. Split lists, arrays, dataframes and operate piecewise.
+library(plyr)
+
 ### Utility functions
 
 # Drops rows and columns with all NA values
@@ -122,7 +127,7 @@ articles.df <- data.frame(llply(articles.df, function(x) iconv(x, "latin1", "UTF
 
 path.exhibits <- file.path(getwd(), "Data", "Exhibitions", "Exhibitions_0f.csv")
 
-exhibits.df <- read.csv(path.exhibitions, as.is = TRUE, na.strings = c("NA", ""))
+exhibits.df <- read.csv(path.exhibits, as.is = TRUE, na.strings = c("NA", ""))
 exhibits.df <- dropAllNA(exhibits.df)
 
 

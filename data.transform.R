@@ -2,8 +2,7 @@
 # String processing library. Doesn't add too much to R but makes a number of functions
 # more sensible
 library(stringr)
-# Data munching library. Split lists, arrays, dataframes and operate piecewise.
-library(plyr)
+
 
 ### Utility functions
 
