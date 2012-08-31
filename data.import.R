@@ -29,7 +29,7 @@ dropAllNA <- function(data) {
 
 ## Path and read.csv
 
-path.patents <- file.path(getwd(), "Data", "Patents", "Patents-Table 1.csv")
+path.patents <- file.path(getwd(), "Data", "Patents", "patents0822.csv")
 
 # na.strings modified to include empty date strings
 
@@ -125,7 +125,7 @@ articles.df <- data.frame(llply(articles.df, function(x) iconv(x, "latin1", "UTF
 
 ## Paths and csv
 
-path.exhibits <- file.path(getwd(), "Data", "Exhibitions", "Exhibitions_0f.csv")
+path.exhibits <- file.path(getwd(), "Data", "Exhibitions", "exhibitions0824.csv")
 
 exhibits.df <- read.csv(path.exhibits, as.is = TRUE, na.strings = c("NA", ""))
 exhibits.df <- dropAllNA(exhibits.df)
