@@ -32,7 +32,14 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 	
 	# subset based on our year constraints
 	preplot.df <- subset(preplot.df, Year >= start & Year <= end)
-
+	
+	# Add a column for annotation (sorry, but ggplot is built like this)
+	n.type <- ddply(preplot.df, by.var, function(x) sum(x[, type.inferred]))
+	n.type[, 2] <- factor(paste0("N = ", n.type[, 2]))
+	names(n.type)[2] <- "Count.Notation"
+	
+	preplot.df <- merge(preplot.df, n.type, by = by.var)
+	
 	# Title text
 	
 	by.var.text <- paste0(tolower(by.var), " ", start, '-', end)
@@ -55,14 +62,22 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 # Country (or language, or anything else)
 
 # add facet labels
-insetFacetLabel <- function(preplot) {
-	By <-preplot$By
+insetFacetLabel <- function(preplot, facet = NULL) {
+	if (!is.null(facet)) {
+		By <- facet
+	} else {
+		By <-preplot$By
+	}
 	# Text location generated based on ranges of inputs
 	text.loc <- c(min(preplot$Data[, "Year"]) + 1,
-								0.6*max(ddply(preplot$Data, c(By), function(x) max(x[, preplot$Type]))[, 2]))
+								0.6*max(ddply(preplot$Data, c(By), function(x) max(x[, preplot$Type]))[, 2]))						
 	return(list(Labels = geom_text(data = preplot$Data, aes_string(x = text.loc[1], y = text.loc[2], label = By, colour = By), show_guide = FALSE, hjust = 0, size = 7),
+							N = geom_text(data = preplot$Data, aes_string(x = text.loc[1], y = 0.3*text.loc[2], label = "Count.Notation"), show_guide = FALSE, hjust = 0, size = 5),
 							Facet = facet_grid(paste(By, "~ .") , labeller = label_bquote(''))))    
 }
+
+
+
 
 ### Themes
 
@@ -119,7 +134,7 @@ patents.country.inset <- patents.country.fill + inset.legend
 # Somewhat more complicated due to the nature of facet_grid()
 # the options drop the facet labels 
 
-patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list)$Facet + insetFacetLabel(patents.list)$Labels +
+patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list) +
  opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 
@@ -158,7 +173,7 @@ clubs.country.inset <- clubs.country.fill + inset.legend
 ### faceting
 
 
-clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list)$Facet + insetFacetLabel(clubs.list)$Labels +
+clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list) +
 	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 
@@ -194,5 +209,53 @@ firms.country.inset <- firms.country.fill + inset.legend
 ### faceting
 
 
-firms.country.facet <- firms.country.fill + insetFacetLabel(firms.list)$Facet + insetFacetLabel(firms.list)$Labels +
+firms.country.facet <- firms.country.fill + insetFacetLabel(firms.list) +
 	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
+
+
+### Club/Firm plots
+
+clubs.flat <- clubs.list[["Data"]]
+firms.flat <- firms.list[["Data"]]
+clubs.flat[, "Country"] <- as.character(clubs.flat[, "Country"])
+firms.flat[, "Country"] <- as.character(firms.flat[, "Country"])
+
+merged.flat <- merge(clubs.flat, firms.flat, by = c("Country", "Year"), all = TRUE)
+merged.flat[is.na(merged.flat)] <- 0
+# Italy has no firm starts and Russia has no club starts. Canada has very few of either
+merged.flat <- merged.flat[!merged.flat[, "Country"] %in% c("Italy", "Russia", "Canada"), ]
+
+library(reshape2)
+
+cf.melt <- melt(merged.flat, id.vars = c("Country", "Year"), measure.vars = c("Clubs", "Firms"))
+
+names(cf.melt) <- c("Country", "Year", "Type", "Start")
+
+rm(firms.flat, clubs.flat, merged.flat)
+clubs.firms.list <- list(Data = subset(cf.melt, Year >= 1895 & Year <= 1916),
+												 Type = "Start",
+												 Range = c(1895, 1916),
+												 By = "Type",
+												 Title = "Combined firm and club starts 1895-1916")
+
+n.type <- ddply(clubs.firms.list$Data, "Country", function(x) sum(x[,"Start"]))
+n.type[, 2] <- factor(paste0("N = ", n.type[, 2]))
+names(n.type)[2] <- "Count.Notation"
+	
+clubs.firms.list$Data <- merge(clubs.firms.list$Data, n.type, by = "Country")
+rm(n.type)
+
+				
+
+clubs.firms.fill <- ggplot(data = cf.combined.list$Data, aes_string(x = "Year", y = cf.combined.list$Type, fill = cf.combined.list$By)) +
+	xlab("") + ylab("Starts per year") + opts(title = cf.combined.list$Title) + 
+	geom_bar(stat = "identity", position = "dodge")
+	
+	
+clubs.firms.facet <- clubs.firms.fill + insetFacetLabel(cf.combined.list, facet = "Country") +
+  opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
+
+
+	
+
+
