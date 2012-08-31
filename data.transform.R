@@ -244,7 +244,7 @@ art.languages <- c("French", "English", "German", "Italian", "Russian",
 # Match numbering to strings. The second argument to match() is a bit tricky
 # because we skip some numbers in the db so we can't simply take a sequence of 
 # numbers from 1-15.
-articles.df[, "Language"] <- art.languages[match(articles.df[, "Language"],  names(table(articles.df[, "Language"])))]
+articles.df[, "Language"] <- art.languages[match(articles.df[, "Language"],  seq_along(art.languages))]
 articles.df[, "Language"] <- factor(articles.df[, "Language"])
 
 

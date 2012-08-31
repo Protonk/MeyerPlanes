@@ -247,12 +247,12 @@ rm(n.type)
 
 				
 
-clubs.firms.fill <- ggplot(data = cf.combined.list$Data, aes_string(x = "Year", y = cf.combined.list$Type, fill = cf.combined.list$By)) +
-	xlab("") + ylab("Starts per year") + opts(title = cf.combined.list$Title) + 
+clubs.firms.fill <- ggplot(data = clubs.firms.list$Data, aes_string(x = "Year", y = clubs.firms.list$Type, fill = clubs.firms.list$By)) +
+	xlab("") + ylab("Starts per year") + opts(title = clubs.firms.list$Title) + 
 	geom_bar(stat = "identity", position = "dodge")
 	
 	
-clubs.firms.facet <- clubs.firms.fill + insetFacetLabel(cf.combined.list, facet = "Country") +
+clubs.firms.facet <- clubs.firms.fill + insetFacetLabel(clubs.firms.list, facet = "Country") +
   opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 
