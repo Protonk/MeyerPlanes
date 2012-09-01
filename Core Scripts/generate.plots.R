@@ -256,6 +256,25 @@ clubs.firms.facet <- clubs.firms.fill + insetFacetLabel(clubs.firms.list, facet 
   opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 
-	
+### Articles
+
+# Start in 1870 as there is a much longer lead-in for articles than clubs, etc.
+# ends at 1909 because Brockett is 1910
+articles.list <- preplotGen(data.in = articles.df, by.var = "Language", start = 1870, end = 1909)
+
+articles.threshold <- 4
+
+articles.countries.retained <- names(table(articles.df[, "Language"])[order(table(articles.df[, "Language"]), decreasing = TRUE)][1:articles.threshold])
+
+articles.list$Data <- articles.list$Data[articles.list$Data[, "Language"] %in% articles.countries.retained, ]
 
 
+articles.country.fill <- ggplot(data = articles.list$Data, 
+															 aes_string(x = "Year", y = articles.list$Type, fill = articles.list$By)) +
+													xlab("") + ylab(paste(articles.list$Type, "per year")) + 
+													opts(title = articles.list$Title) + geom_bar(stat = "identity")
+													
+articles.country.inset <- articles.country.fill + inset.legend	
+
+articles.country.facet <- articles.country.fill + insetFacetLabel(articles.list) +
+  opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)							
