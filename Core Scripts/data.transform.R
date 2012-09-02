@@ -64,7 +64,9 @@ ddplyMultiple <- function(data, inputcol, comparison) {
 	multiple.comb <- cbind(multiple.breakout, data[, comparison])
 
 	# Create a 0 row data frame so we can populate it in a for loop
-	df.reduced <- data.frame(matrix(NA, ncol = ncol(multiple.breakout) - 1, nrow = 0))
+	# multiple.breakout should have columns for each separator (at least one)
+	# plus a column for the "split" logical variable
+	df.reduced <- data.frame(matrix(NA, ncol = 3, nrow = 0))
 	# name it based on input
 	working.names <- names(df.reduced) <- c(inputcol,
 																					comparison,
@@ -76,8 +78,13 @@ ddplyMultiple <- function(data, inputcol, comparison) {
     names(intermediate.reduced) <- working.names
     df.reduced <- rbind(df.reduced, intermediate.reduced)
   }
-  # convert from factor											 
-	df.reduced[, comparison] <- as.character(df.reduced[, comparison])
+  # convert from factor			
+  # If years get turned into factors R will return the factor codes unless converted
+  # to characters first								 
+	df.reduced[, comparison] <- as.numeric(as.character(df.reduced[, comparison]))
+	df.reduced[, inputcol] <- as.character(df.reduced[, inputcol])
+	df.reduced <- df.reduced[complete.cases(df.reduced), ]
+	df.reduced[, inputcol] <- factor(df.reduced[, inputcol])
 	df.reduced <- df.reduced[, c(comparison, inputcol, "Count")]
 	return(df.reduced)
 }
@@ -172,7 +179,7 @@ clubs.df[grepl("Germany", clubs.df[, "Country"]), "Country"] <- "Germany"
 clubs.df[grepl("France", clubs.df[, "Country"]), "Country"] <- "France"
 clubs.df[grepl("US", clubs.df[, "Country"]), "Country"] <- "United States"
 # We list both Austria and Hungary for club location originally (but not for firms)
-clubs.df[grepl("Austria-Hungary", clubs.df[, "Country"]), "Country"] <- "Austria-Hungary"
+clubs.df[grepl("Austria(-| )Hungary", clubs.df[, "Country"]), "Country"] <- "Austria-Hungary"
 
 
 

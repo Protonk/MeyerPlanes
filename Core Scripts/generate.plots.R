@@ -239,6 +239,7 @@ clubs.firms.list <- list(Data = subset(cf.melt, Year >= 1895 & Year <= 1916),
 												 Title = "Combined firm and club starts 1895-1916")
 
 n.type <- ddply(clubs.firms.list$Data, "Country", function(x) sum(x[,"Start"]))
+# this will squawk with a warning. 
 n.type[, 2] <- factor(paste0("N = ", n.type[, 2]))
 names(n.type)[2] <- "Count.Notation"
 	
