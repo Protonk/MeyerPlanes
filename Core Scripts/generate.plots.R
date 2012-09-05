@@ -57,6 +57,41 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 							Title = paste(type.text, by.var.text, sep = " ")))
 }
 
+# Accepts a preplot list (e.g. clubs.list) and returns a data frame
+# with variables below a certain threshold summed into "other"
+
+genThreshold <- function(input.list, threshold, plot.other = TRUE) {
+	# Passes By, Type, Data, etc. to their own objects.
+	# see http://stackoverflow.com/a/8773047/1188479 for an explanation 
+	# of the envir argument
+	list2env(input.list, envir = environment())
+	# Tabulates the countries or languages (or whatever is specified in "By") and cuts off 
+	# below a certain threshold
+	items.retained <- names(table(Data[, By])[order(table(Data[, By]), decreasing = TRUE)][1:threshold])
+	
+	# All of the "other" results summed by year into 
+	# their own category (Count.Notation added as well)
+	other <- Data[!Data[, By] %in% items.retained, ]
+	if (nrow(other) != 0 & plot.other) {
+		other <- ddply(other, "Year", function(x) sum(x[, Type]))
+		names(other)[2] <- Type
+		other[, By] <- "Other"
+	
+		other[, "Count.Notation"] <- paste0("N = ", sum(other[, Type]))
+	
+		other <- other[, c(By, "Year", Type, "Count.Notation")]
+	
+	# Added back to the original dataframe and the factor levels condensed
+		output.df <- rbind(Data[Data[, By] %in% items.retained, ], other)
+		output.df[, By] <- factor(as.character(output.df[, By]))
+	} else {
+		output.df <- Data[Data[, By] %in% items.retained, ]
+	}
+	return(output.df)
+}
+
+
+
 # Plots by year should come from a common expectation of structure.
 # Year is the cleaned up start year, publication year or year applied (depending on the dataset)
 # Country (or language, or anything else)
@@ -150,11 +185,8 @@ clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, e
 
 # Set a threshold (you can change this) for minimum number of firms. We save it as 
 # an object so we can put it in the footnote later
-club.threshold <- 6
 
-club.countries.retained <- names(table(clubs.df[, "Country"])[order(table(clubs.df[, "Country"]), decreasing = TRUE)][1:club.threshold])
-
-clubs.list$Data <- clubs.list$Data[clubs.list$Data[, "Country"] %in% club.countries.retained, ]
+clubs.list$Data <- genThreshold(clubs.list, 6)
 
 
 # Bar chart, similar to the patent plot
@@ -187,13 +219,11 @@ firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1895, e
 # Firm preplotting is a bit different to the large number of (coded) multinational firms
 
 
-# Top 6 countries plotted. We can do more than 6 for some plots but 6 is sensible
+# Top 6 countries plotted. We can do more than 6 for some plots but 6 is sensible	
+	
+firms.list$Data <- genThreshold(firms.list, 6)
 
-firm.threshold <- 6
 
-firm.countries.retained <- names(table(firms.df[, "Country"])[order(table(firms.df[, "Country"]), decreasing = TRUE)][1:firm.threshold])
-
-firms.list$Data <- firms.list$Data[firms.list$Data[, "Country"] %in% firm.countries.retained, ]
 
 # Bar chart, similar to the patent plot
 
@@ -263,19 +293,17 @@ clubs.firms.facet <- clubs.firms.fill + insetFacetLabel(clubs.firms.list, facet 
 # ends at 1909 because Brockett is 1910
 articles.list <- preplotGen(data.in = articles.df, by.var = "Language", start = 1870, end = 1909)
 
-articles.threshold <- 4
+# set threshold to 4
 
-articles.countries.retained <- names(table(articles.df[, "Language"])[order(table(articles.df[, "Language"]), decreasing = TRUE)][1:articles.threshold])
-
-articles.list$Data <- articles.list$Data[articles.list$Data[, "Language"] %in% articles.countries.retained, ]
+articles.list$Data <- genThreshold(articles.list, 4)
 
 
-articles.country.fill <- ggplot(data = articles.list$Data, 
+articles.lang.fill <- ggplot(data = articles.list$Data, 
 															 aes_string(x = "Year", y = articles.list$Type, fill = articles.list$By)) +
 													xlab("") + ylab(paste(articles.list$Type, "per year")) + 
 													opts(title = articles.list$Title) + geom_bar(stat = "identity")
 													
-articles.country.inset <- articles.country.fill + inset.legend	
+articles.lang.inset <- articles.lang.fill + inset.legend	
 
-articles.country.facet <- articles.country.fill + insetFacetLabel(articles.list) +
+articles.lang.facet <- articles.lang.fill + insetFacetLabel(articles.list) +
   opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)							
