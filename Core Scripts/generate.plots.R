@@ -4,10 +4,30 @@ library(ggplot2)
 
 ### Preplotting
 
+## Generate labels
+
+# Add a column for annotation (sorry, but ggplot is built like this)
+labelLoc <- function(Data , By, Type) {
+	
+	labels.df <- ddply(Data, By, function(x) sum(x[, Type]))
+	names(labels.df)[2] <- "Count.Notation"
+	labels.df[, 1] <- as.character(labels.df[, 1])
+
+	# Locations
+	x.loc <- min(Data[, "Year"], na.rm = TRUE) + 1
+	y.loc <- 0.6*max(ddply(Data, c(By), function(x) max(x[, Type]))[, 2])
+
+	labels.df[, "x"] <- x.loc
+	labels.df[, "y.By"] <- y.loc
+	labels.df[, "y.Count"] <- 0.3*y.loc
+	return(labels.df)
+}
+
+
 ## Preplot functions for by year/country (or year/field, etc.) plots
 ## Generates list for preplotting so we can pluck out variables of interest for later.
 
-preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, end = 1916) {
+preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, end = 1916, threshold = 6, plot.other = TRUE) {
 	
 	# deparse(substitute()) is an R trick to get a character representation of an object name
 	type.inferred <- switch(deparse(substitute(data.in)),
@@ -33,12 +53,35 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 	# subset based on our year constraints
 	preplot.df <- subset(preplot.df, Year >= start & Year <= end)
 	
-	# Add a column for annotation (sorry, but ggplot is built like this)
-	n.type <- ddply(preplot.df, by.var, function(x) sum(x[, type.inferred]))
-	n.type[, 2] <- factor(paste0("N = ", n.type[, 2]))
-	names(n.type)[2] <- "Count.Notation"
 	
-	preplot.df <- merge(preplot.df, n.type, by = by.var)
+	# Accepts same arguments from local function environment and
+	# generates plot info (and notation) for left out groups
+
+	genThreshold <- function(threshold, Data = preplot.df, By = by.var, Type = type.inferred, plot.other) {
+
+		# Tabulates the countries or languages (or whatever is specified in "By") and cuts off 
+		# below a certain threshold
+		items.retained <- names(table(Data[, By])[order(table(Data[, By]), decreasing = TRUE)][1:threshold])
+		
+		# All of the "other" results summed by year into 
+		# their own category (Count.Notation added as well)
+		other <- Data[!Data[, By] %in% items.retained, ]
+		if (nrow(other) != 0 & plot.other) {
+			other <- ddply(other, "Year", function(x) sum(x[, Type]))
+			names(other)[2] <- Type
+			other[, By] <- "Other"
+			
+			other <- other[, c(By, "Year", Type)]
+		# Added back to the original dataframe and the factor levels condensed
+			output.df <- rbind(Data[Data[, By] %in% items.retained, ], other)
+			output.df[, By] <- factor(as.character(output.df[, By]))
+		} else {
+			output.df <- Data[Data[, By] %in% items.retained, ]
+		}
+		return(output.df)
+	}
+
+	preplot.df <- genThreshold(threshold = threshold, plot.other = plot.other)
 	
 	# Title text
 	
@@ -48,49 +91,20 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 											 Clubs = "Aeronautical club starts by",
 											 Firms = "Aeronautical firm starts by",
 											 Articles = "Aeronautically-relevant articles by")
+	
+	# Add a dataframe for annotation (sorry, but ggplot is built like this)
+	labels.df <- labelLoc(Data = preplot.df, By = by.var, Type = type.inferred)
+	
 	# return a list object so we can pluck out what we need to plot later 
 	# and not carry arguments around							 
 	return(list(Data = preplot.df,
 							Type = type.inferred,
 							Range = year.range,
 							By = by.var,
+							Labels = labels.df,
 							Title = paste(type.text, by.var.text, sep = " ")))
 }
-
-# Accepts a preplot list (e.g. clubs.list) and returns a data frame
-# with variables below a certain threshold summed into "other"
-
-genThreshold <- function(input.list, threshold, plot.other = TRUE) {
-	# Passes By, Type, Data, etc. to their own objects.
-	# see http://stackoverflow.com/a/8773047/1188479 for an explanation 
-	# of the envir argument
-	list2env(input.list, envir = environment())
-	# Tabulates the countries or languages (or whatever is specified in "By") and cuts off 
-	# below a certain threshold
-	items.retained <- names(table(Data[, By])[order(table(Data[, By]), decreasing = TRUE)][1:threshold])
-	
-	# All of the "other" results summed by year into 
-	# their own category (Count.Notation added as well)
-	other <- Data[!Data[, By] %in% items.retained, ]
-	if (nrow(other) != 0 & plot.other) {
-		other <- ddply(other, "Year", function(x) sum(x[, Type]))
-		names(other)[2] <- Type
-		other[, By] <- "Other"
-	
-		other[, "Count.Notation"] <- paste0("N = ", sum(other[, Type]))
-	
-		other <- other[, c(By, "Year", Type, "Count.Notation")]
-	
-	# Added back to the original dataframe and the factor levels condensed
-		output.df <- rbind(Data[Data[, By] %in% items.retained, ], other)
-		output.df[, By] <- factor(as.character(output.df[, By]))
-	} else {
-		output.df <- Data[Data[, By] %in% items.retained, ]
-	}
-	return(output.df)
-}
-
-
+preplotGen(data.in = patents.df, by.var = "Country", start = 1860, end = 1916)
 
 # Plots by year should come from a common expectation of structure.
 # Year is the cleaned up start year, publication year or year applied (depending on the dataset)
@@ -103,11 +117,9 @@ insetFacetLabel <- function(preplot, facet = NULL) {
 	} else {
 		By <-preplot$By
 	}
-	# Text location generated based on ranges of inputs
-	text.loc <- c(min(preplot$Data[, "Year"]) + 1,
-								0.6*max(ddply(preplot$Data, c(By), function(x) max(x[, preplot$Type]))[, 2]))						
-	return(list(Labels = geom_text(data = preplot$Data, aes_string(x = text.loc[1], y = text.loc[2], label = By, colour = By), show_guide = FALSE, hjust = 0, size = 7),
-							N = geom_text(data = preplot$Data, aes_string(x = text.loc[1], y = 0.3*text.loc[2], label = "Count.Notation"), show_guide = FALSE, hjust = 0, size = 5),
+					
+	return(list(Labels = geom_text(data = preplot$Labels, aes_string(x = "x", y = "y.By", label = By, colour = By, group = NULL), show_guide = FALSE, hjust = 0, size = 7),
+							N = geom_text(data = preplot$Labels, aes(x = x, y = y.Count, label = paste("N =", Count.Notation), group = NULL), show_guide = FALSE, hjust = 0, size = 5),
 							Facet = facet_grid(paste(By, "~ .") , labeller = label_bquote(''))))    
 }
 
@@ -181,12 +193,9 @@ patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list) +
 ## Preplotting
 
 # I start at 1895 for firms because we don't see anything much before then
-clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, end = 1916)
-
-# Set a threshold (you can change this) for minimum number of firms. We save it as 
+# Set a threshold (you can change this) for minimum number of clubs. We save it as 
 # an object so we can put it in the footnote later
-
-clubs.list$Data <- genThreshold(clubs.list, 6)
+clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, end = 1916, threshold = 6)
 
 
 # Bar chart, similar to the patent plot
@@ -214,15 +223,9 @@ clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list) +
 ## Preplotting
 
 # I start at 1895 for firms because we don't see anything much before then
-firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1895, end = 1916)
-
 # Firm preplotting is a bit different to the large number of (coded) multinational firms
-
-
 # Top 6 countries plotted. We can do more than 6 for some plots but 6 is sensible	
-	
-firms.list$Data <- genThreshold(firms.list, 6)
-
+firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1895, end = 1916, threshold = 6)
 
 
 # Bar chart, similar to the patent plot
@@ -262,40 +265,28 @@ cf.melt <- melt(merged.flat, id.vars = c("Country", "Year"), measure.vars = c("C
 names(cf.melt) <- c("Country", "Year", "Type", "Start")
 
 rm(firms.flat, clubs.flat, merged.flat)
+
+
 clubs.firms.list <- list(Data = subset(cf.melt, Year >= 1895 & Year <= 1916),
 												 Type = "Start",
 												 Range = c(1895, 1916),
-												 By = "Type",
+												 By = "Country",
 												 Title = "Combined firm and club starts 1895-1916")
 
-n.type <- ddply(clubs.firms.list$Data, "Country", function(x) sum(x[,"Start"]))
-# this will squawk with a warning. 
-n.type[, 2] <- factor(paste0("N = ", n.type[, 2]))
-names(n.type)[2] <- "Count.Notation"
-	
-clubs.firms.list$Data <- merge(clubs.firms.list$Data, n.type, by = "Country")
-rm(n.type)
-
+clubs.firms.list$Labels <- labelLoc(Data = clubs.firms.list$Data, By = "Country", Type = clubs.firms.list$Type)
 				
 
-clubs.firms.fill <- ggplot(data = clubs.firms.list$Data, aes_string(x = "Year", y = clubs.firms.list$Type, fill = clubs.firms.list$By)) +
+clubs.firms.fill <- ggplot(data = clubs.firms.list$Data, aes(x = Year, y = Start, fill = Type)) + 
 	xlab("") + ylab("Starts per year") + opts(title = clubs.firms.list$Title) + 
 	geom_bar(stat = "identity", position = "dodge")
-	
-	
-clubs.firms.facet <- clubs.firms.fill + insetFacetLabel(clubs.firms.list, facet = "Country") +
-  opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 
 ### Articles
 
 # Start in 1870 as there is a much longer lead-in for articles than clubs, etc.
 # ends at 1909 because Brockett is 1910
-articles.list <- preplotGen(data.in = articles.df, by.var = "Language", start = 1870, end = 1909)
-
 # set threshold to 4
-
-articles.list$Data <- genThreshold(articles.list, 4)
+articles.list <- preplotGen(data.in = articles.df, by.var = "Language", start = 1870, end = 1909, threshold = 4)
 
 
 articles.lang.fill <- ggplot(data = articles.list$Data, 
