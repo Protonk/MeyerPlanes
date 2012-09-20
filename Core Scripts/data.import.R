@@ -29,7 +29,7 @@ dropAllNA <- function(data) {
 
 ## Path and read.csv
 
-path.patents <- file.path(getwd(), "Data", "Patents", "patents0822.csv")
+path.patents <- file.path(getwd(), "Data", "Patents", "patents0916.csv")
 
 # na.strings modified to include empty date strings
 
@@ -41,8 +41,9 @@ patents.df <- dropAllNA(patents.df)
 # Rename columns
 
 # drop a number of columns which won't be used for analysis. 
-
-patents.df <- patents.df[, c(7, 1, 2:5, 9)]
+# specifically, drop unrelated to aircraft patents for now
+patents.df <- patents.df[as.logical(patents.df[, "related.to.aircraft."]), ]
+patents.df <- patents.df[, c(7, 1, 2:5, 10)]
 
 # Year is the year protection was applied, not filing
 names(patents.df) <- c("English.Title.Summary",
