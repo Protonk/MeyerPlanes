@@ -7,6 +7,8 @@ library(ggplot2)
 ## Generate labels
 
 # Add a column for annotation (sorry, but ggplot is built like this)
+# idea for building a small data frame and attaching w/
+# group = NULL from here: http://trinkerrstuff.wordpress.com/2012/09/01/add-text-annotations-to-ggplot2-faceted-plot/
 labelLoc <- function(Data , By, Type) {
 	
 	labels.df <- ddply(Data, By, function(x) sum(x[, Type]))
@@ -19,7 +21,7 @@ labelLoc <- function(Data , By, Type) {
 
 	labels.df[, "x"] <- x.loc
 	labels.df[, "y.By"] <- y.loc
-	labels.df[, "y.Count"] <- 0.3*y.loc
+	labels.df[, "y.Count"] <- 0.6*y.loc
 	return(labels.df)
 }
 
@@ -27,7 +29,7 @@ labelLoc <- function(Data , By, Type) {
 ## Preplot functions for by year/country (or year/field, etc.) plots
 ## Generates list for preplotting so we can pluck out variables of interest for later.
 
-preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, end = 1916, threshold = 6, plot.other = TRUE) {
+preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, end = 1909, threshold = 6, plot.other = TRUE) {
 	
 	# deparse(substitute()) is an R trick to get a character representation of an object name
 	type.inferred <- switch(deparse(substitute(data.in)),
@@ -138,7 +140,10 @@ inset.legend <- opts(legend.background = theme_rect(fill="white"),
 # requested changes to display options
 
 meyer.theme <- opts(plot.title = theme_text(size=20),
-									  axis.text.x  = theme_text(size = 14))
+									  axis.text.x  = theme_text(size = 14),
+									  axis.text.y = theme_text(size = 12),
+									  axis.title.y = theme_text(size = 13, angle = 90),
+									  panel.background = theme_rect(fill='#EBEBEB', colour=NA))
 
 ## Web/Presentation Theme
 ## These will retain the gray background and some of the major/minor lines
@@ -158,7 +163,7 @@ meyer.theme <- opts(plot.title = theme_text(size=20),
 # Going to 1916 here
 # Generate the list first. This way if we want to subset further or otherwise fiddle with
 # data (like ordering factors) we can
-patents.list <- preplotGen(data.in = patents.df, by.var = "Country", start = 1860, end = 1916)
+patents.list <- preplotGen(data.in = patents.df, by.var = "Country", start = 1860, end = 1909)
 
 # This is all we need for bar chart. geom_bar() looks for a "fill" variable, not "colour"
 # We use stat = "identity" because otherwise ggplot2 will try and sum up columns 
@@ -169,7 +174,8 @@ patents.list <- preplotGen(data.in = patents.df, by.var = "Country", start = 186
 patents.country.fill <- ggplot(data = patents.list$Data, 
 															 aes_string(x = "Year", y = patents.list$Type, fill = patents.list$By)) +
 													xlab("") + ylab(paste(patents.list$Type, "per year")) + 
-													opts(title = patents.list$Title) + geom_bar(stat = "identity")
+													opts(title = patents.list$Title) + geom_bar(stat = "identity") + 
+													meyer.theme
 
 
 ## Adding theme and layer changes
@@ -195,7 +201,7 @@ patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list) +
 # I start at 1895 for firms because we don't see anything much before then
 # Set a threshold (you can change this) for minimum number of clubs. We save it as 
 # an object so we can put it in the footnote later
-clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, end = 1916, threshold = 6)
+clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, end = 1909, threshold = 6)
 
 
 # Bar chart, similar to the patent plot
@@ -203,13 +209,15 @@ clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, e
 clubs.country.fill <- ggplot(data = clubs.list$Data, 
 															 aes_string(x = "Year", y = clubs.list$Type, fill = clubs.list$By)) +
 													xlab("") + ylab(paste(clubs.list$Type, "per year")) + 
-													opts(title = clubs.list$Title) + geom_bar(stat = "identity")
+													opts(title = clubs.list$Title) + geom_bar(stat = "identity") +
+													meyer.theme
 
 
 
 ## Theme and layer changes are likewise relient on the same syntax and functions
 
 clubs.country.inset <- clubs.country.fill + inset.legend
+
 
 ### faceting
 
@@ -225,7 +233,7 @@ clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list) +
 # I start at 1895 for firms because we don't see anything much before then
 # Firm preplotting is a bit different to the large number of (coded) multinational firms
 # Top 6 countries plotted. We can do more than 6 for some plots but 6 is sensible	
-firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1895, end = 1916, threshold = 6)
+firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1895, end = 1909, threshold = 6)
 
 
 # Bar chart, similar to the patent plot
@@ -233,7 +241,8 @@ firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1895, e
 firms.country.fill <- ggplot(data = firms.list$Data, 
 															 aes_string(x = "Year", y = firms.list$Type, fill = firms.list$By)) +
 													xlab("") + ylab(paste(firms.list$Type, "per year")) + 
-													opts(title = firms.list$Title) + geom_bar(stat = "identity")
+													opts(title = firms.list$Title) + geom_bar(stat = "identity") +
+													meyer.theme
 
 ## Theme and layer changes are likewise relient on the same syntax and functions
 
@@ -267,9 +276,9 @@ names(cf.melt) <- c("Country", "Year", "Type", "Start")
 rm(firms.flat, clubs.flat, merged.flat)
 
 
-clubs.firms.list <- list(Data = subset(cf.melt, Year >= 1895 & Year <= 1916),
+clubs.firms.list <- list(Data = subset(cf.melt, Year >= 1895 & Year <= 1909),
 												 Type = "Start",
-												 Range = c(1895, 1916),
+												 Range = c(1895, 1909),
 												 By = "Country",
 												 Title = "Combined firm and club starts 1895-1916")
 
@@ -278,7 +287,7 @@ clubs.firms.list$Labels <- labelLoc(Data = clubs.firms.list$Data, By = "Country"
 
 clubs.firms.fill <- ggplot(data = clubs.firms.list$Data, aes(x = Year, y = Start, fill = Type)) + 
 	xlab("") + ylab("Starts per year") + opts(title = clubs.firms.list$Title) + 
-	geom_bar(stat = "identity", position = "dodge")
+	geom_bar(stat = "identity", position = "dodge") + meyer.theme
 
 
 ### Articles
@@ -292,7 +301,8 @@ articles.list <- preplotGen(data.in = articles.df, by.var = "Language", start = 
 articles.lang.fill <- ggplot(data = articles.list$Data, 
 															 aes_string(x = "Year", y = articles.list$Type, fill = articles.list$By)) +
 													xlab("") + ylab(paste(articles.list$Type, "per year")) + 
-													opts(title = articles.list$Title) + geom_bar(stat = "identity")
+													opts(title = articles.list$Title) + geom_bar(stat = "identity") +
+													meyer.theme
 													
 articles.lang.inset <- articles.lang.fill + inset.legend	
 

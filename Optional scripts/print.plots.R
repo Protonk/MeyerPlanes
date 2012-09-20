@@ -33,16 +33,15 @@ footText <- function(source) {
 # Naming for generated images
 outputName <- function(plot.obj, layer) {
 	xval <- as.character(plot.obj$mapping$x)
-	short.date <- format(Sys.time(), format = "%b%d")
   # year ranges
 	range <- ifelse(is.numeric(plot.obj$data[, xval]), paste(range(plot.obj$data[, xval]), collapse = "-"), NULL)
 	# Faceted plots have multiple mappings. Ends up looking weird
   if (length(plot.obj$facet) > 1) {
-    type <- paste(plot.obj$options$labels$y, "by", as.character(plot.obj$facet$rows))
+    type <- tolower(paste0(plot.obj$options$labels$y, "-", as.character(plot.obj$facet$rows)))
 	} else {
-	  type <- paste(unlist(Filter(nchar, plot.obj$options$labels)), collapse = " by ")
+	  type <- tolower(paste(unlist(Filter(nchar, plot.obj$options$labels)), collapse = "-"))
 	}
-	return(paste(type, layer, range, short.date))
+	return(paste(type, layer, range))
 }
 
 
@@ -50,11 +49,11 @@ outputName <- function(plot.obj, layer) {
 
 # we can't do footnotes and ggsave() easily so this will serve as a means to 
 # export the plots exactly as we want them
-printPng <- function(source = "clubs", name, layer) {
+printPng <- function(source = "clubs", object, name, layer) {
   location <- file.path(getwd(), "Images", paste(name, "png", sep = "."))
   png(filename = location, 
       width = 1024, height = 632)
-  print(plot.obj)
+  print(object)
   makeFootnote(text = footText(source))
   dev.off()
 }
@@ -62,6 +61,7 @@ printPng <- function(source = "clubs", name, layer) {
 # Structure here is obviously amenable to one big call to sapply with these
 # three in a matrix. But this works for now
 plot.objects <- ls()[sapply(ls(), function(x) class(get(x))) %in% "ggplot"]
+plot.objects <- plot.objects[!grepl("fill", plot.objects)]
 plot.sources <- sapply(strsplit(plot.objects, "\\."), `[`, 1)
 plot.layers <- sapply(strsplit(plot.objects, "\\."), tail, 1)
 plot.names <- character(length(plot.objects))
@@ -71,7 +71,7 @@ for (i in seq_along(plot.objects)) {
 
   
 for (i in seq_along(plot.objects)) {
-  printPng(source = plot.sources[i], name = plot.names[i], layer = plot.layers[i])
+  printPng(source = plot.sources[i], object = get(plot.objects[i]), name = plot.names[i], layer = plot.layers[i])
 }
 
         
