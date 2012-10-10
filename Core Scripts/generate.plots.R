@@ -202,7 +202,7 @@ patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list) +
 # Set a threshold (you can change this) for minimum number of clubs. We save it as 
 # an object so we can put it in the footnote later
 clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, end = 1909, threshold = 6)
-
+clubs.list.1860 <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1860, end = 1909, threshold = 6)
 
 # Bar chart, similar to the patent plot
 
@@ -212,15 +212,25 @@ clubs.country.fill <- ggplot(data = clubs.list$Data,
 													opts(title = clubs.list$Title) + geom_bar(stat = "identity") +
 													meyer.theme
 
+clubs.country.fill.1860 <- ggplot(data = clubs.list.1860$Data, 
+															 aes_string(x = "Year", y = clubs.list$Type, fill = clubs.list.1860$By)) +
+													xlab("") + ylab(paste(clubs.list.1860$Type, "per year")) + 
+													opts(title = clubs.list.1860$Title) + geom_bar(stat = "identity") +
+													meyer.theme
 
 
 ## Theme and layer changes are likewise relient on the same syntax and functions
 
 clubs.country.inset <- clubs.country.fill + inset.legend
 
+clubs.country.inset.1860 <- clubs.country.fill.1860 + inset.legend
+
+
 
 ### faceting
 
+clubs.country.facet.1860 <- clubs.country.fill.1860 + insetFacetLabel(clubs.list.1860) +
+	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
 
 clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list) +
 	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
