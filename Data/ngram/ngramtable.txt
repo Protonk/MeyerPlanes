@@ -1,0 +1,33 @@
+Kite
+cerf-volant
+Drachen
+Glider
+planeur
+Gleiter, Segelflugzeug
+Airship
+ballon dirigeable
+Luftschiff
+Balloon
+ballon
+Ballon
+Dirigible
+dirigeable
+Luftschiff
+Monoplane
+monoplan
+Eindecker
+Biplane
+biplan
+Doppeldecker
+Research
+recherche
+Forschung, Erforschung
+Aeronautical, aeronautics, aviation
+aéronautique, l'aéronautique, aviation
+flugtechnische, Luftfahrt-, Raumfahrt-
+Hydrogen
+hydrogène
+Wasserstoff
+Ornithopter
+ornithoptère
+Ornithopter, Ortoptero
