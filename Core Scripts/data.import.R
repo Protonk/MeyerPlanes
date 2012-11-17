@@ -30,10 +30,16 @@ dropAllNA <- function(data) {
 ## Path and read.csv
 
 path.patents <- file.path(getwd(), "Data", "Patents", "patents0916.csv")
+path.norway <- file.path(getwd(), "Data", "Patents", "Norsk_patents_Oct2012_0k.csv")
 
 # na.strings modified to include empty date strings
 
 patents.df <- read.csv(path.patents, as.is = TRUE, na.strings = c("NA", ""))
+norway.df <- read.csv(path.norway, as.is = TRUE, na.strings = c("NA", ""))
+
+names(norway.df) <- names(patents.df)
+
+patents.df <- rbind(patents.df, norway.df)
 
 patents.df <- dropAllNA(patents.df)
 
@@ -84,7 +90,7 @@ names(clubs.df) <- c("Name",
 
 ## Paths and csv
 
-path.firms <- file.path(getwd(), "Data", "Firms", "Firms_v46.2.csv")
+path.firms <- file.path(getwd(), "Data", "Firms", "FirmsV46.3.csv")
 
 
 firms.df <- read.csv(path.firms, as.is = TRUE, na.strings = c("NA", ""))

@@ -29,6 +29,20 @@ labelLoc <- function(Data , By, Type) {
 ## Preplot functions for by year/country (or year/field, etc.) plots
 ## Generates list for preplotting so we can pluck out variables of interest for later.
 
+# Emulate/capture ggplot2 colors 
+# from http://stackoverflow.com/a/8197703/1188479
+
+gg_color_hue <- function(n) {
+  hues = seq(15, 375, length=n+1)
+  hcl(h=hues, l=65, c=100)[1:n]
+}
+
+color.key <- gg_color_hue(10)
+names(color.key) <- c('United Kingdom','United States', 'Germany','France', 
+											'Russia', 'Italy', 'Canada', 'Norway', 
+											'Switzerland', 'Other')
+
+
 preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, end = 1909, threshold = 6, plot.other = TRUE) {
 	
 	# deparse(substitute()) is an R trick to get a character representation of an object name
@@ -50,7 +64,7 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 	# Cleanup
 	preplot.df <- preplot.df[complete.cases(preplot.df), ]
 	preplot.df[, "Year"] <- as.numeric(preplot.df[, "Year"])
-	preplot.df[, by.var] <- factor(preplot.df[, by.var])
+	preplot.df[, by.var] <- preplot.df[, by.var]
 	
 	# subset based on our year constraints
 	preplot.df <- subset(preplot.df, Year >= start & Year <= end)
@@ -63,8 +77,7 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 
 		# Tabulates the countries or languages (or whatever is specified in "By") and cuts off 
 		# below a certain threshold
-		items.retained <- names(table(Data[, By])[order(table(Data[, By]), decreasing = TRUE)][1:threshold])
-		
+		items.retained <- aggregate(Data[, Type], list(Named = Data[, By]), FUN = sum)[order(aggregate(Data[, Type], list(By = Data[, By]), FUN = sum)[, "x"], decreasing = TRUE), "Named"][1:threshold]
 		# All of the "other" results summed by year into 
 		# their own category (Count.Notation added as well)
 		other <- Data[!Data[, By] %in% items.retained, ]
@@ -97,6 +110,10 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 	# Add a dataframe for annotation (sorry, but ggplot is built like this)
 	labels.df <- labelLoc(Data = preplot.df, By = by.var, Type = type.inferred)
 	
+	# Create a consistent color scheme
+	
+	color.out <- color.key[names(color.key) %in% labels.df[, by.var]]
+	
 	# return a list object so we can pluck out what we need to plot later 
 	# and not carry arguments around							 
 	return(list(Data = preplot.df,
@@ -104,6 +121,7 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 							Range = year.range,
 							By = by.var,
 							Labels = labels.df,
+							Colors = color.out,
 							Title = paste(type.text, by.var.text, sep = " ")))
 }
 preplotGen(data.in = patents.df, by.var = "Country", start = 1860, end = 1916)
@@ -145,6 +163,7 @@ meyer.theme <- opts(plot.title = theme_text(size=20),
 									  axis.title.y = theme_text(size = 13, angle = 90),
 									  panel.background = theme_rect(fill='#EBEBEB', colour=NA))
 
+
 ## Web/Presentation Theme
 ## These will retain the gray background and some of the major/minor lines
 ## 
@@ -160,10 +179,10 @@ meyer.theme <- opts(plot.title = theme_text(size=20),
 
 ## Generating the graph primitives
 
-# Going to 1916 here
+# Going to 1914 here
 # Generate the list first. This way if we want to subset further or otherwise fiddle with
 # data (like ordering factors) we can
-patents.list <- preplotGen(data.in = patents.df, by.var = "Country", start = 1860, end = 1909)
+patents.list <- preplotGen(data.in = patents.df, by.var = "Country", start = 1860, end = 1914)
 
 # This is all we need for bar chart. geom_bar() looks for a "fill" variable, not "colour"
 # We use stat = "identity" because otherwise ggplot2 will try and sum up columns 
@@ -175,7 +194,7 @@ patents.country.fill <- ggplot(data = patents.list$Data,
 															 aes_string(x = "Year", y = patents.list$Type, fill = patents.list$By)) +
 													xlab("") + ylab(paste(patents.list$Type, "per year")) + 
 													opts(title = patents.list$Title) + geom_bar(stat = "identity") + 
-													meyer.theme
+													meyer.theme + scale_fill_manual(values = patents.list$Colors)
 
 
 ## Adding theme and layer changes
@@ -188,7 +207,8 @@ patents.country.inset <- patents.country.fill + inset.legend
 # the options drop the facet labels 
 
 patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list) +
- opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
+ opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
+ scale_colour_manual(values = patents.list$Colors)
 
 
 
@@ -201,8 +221,8 @@ patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list) +
 # I start at 1895 for firms because we don't see anything much before then
 # Set a threshold (you can change this) for minimum number of clubs. We save it as 
 # an object so we can put it in the footnote later
-clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, end = 1909, threshold = 6)
-clubs.list.1860 <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1860, end = 1909, threshold = 6)
+clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1895, end = 1912, threshold = 4)
+clubs.list.1860 <- preplotGen(data.in = clubs.df, by.var = "Country", start = 1860, end = 1912, threshold = 4)
 
 # Bar chart, similar to the patent plot
 
@@ -210,13 +230,13 @@ clubs.country.fill <- ggplot(data = clubs.list$Data,
 															 aes_string(x = "Year", y = clubs.list$Type, fill = clubs.list$By)) +
 													xlab("") + ylab(paste(clubs.list$Type, "per year")) + 
 													opts(title = clubs.list$Title) + geom_bar(stat = "identity") +
-													meyer.theme
+													meyer.theme + scale_fill_manual(values = clubs.list$Colors)
 
 clubs.country.fill.1860 <- ggplot(data = clubs.list.1860$Data, 
 															 aes_string(x = "Year", y = clubs.list$Type, fill = clubs.list.1860$By)) +
 													xlab("") + ylab(paste(clubs.list.1860$Type, "per year")) + 
 													opts(title = clubs.list.1860$Title) + geom_bar(stat = "identity") +
-													meyer.theme
+													meyer.theme + scale_fill_manual(values = clubs.list$Colors)
 
 
 ## Theme and layer changes are likewise relient on the same syntax and functions
@@ -230,10 +250,12 @@ clubs.country.inset.1860 <- clubs.country.fill.1860 + inset.legend
 ### faceting
 
 clubs.country.facet.1860 <- clubs.country.fill.1860 + insetFacetLabel(clubs.list.1860) +
-	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
+	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
+	scale_colour_manual(values = clubs.list$Colors)
 
 clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list) +
-	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
+	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
+	scale_colour_manual(values = clubs.list$Colors)
 
 
 ### Firms
@@ -243,7 +265,7 @@ clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list) +
 # I start at 1895 for firms because we don't see anything much before then
 # Firm preplotting is a bit different to the large number of (coded) multinational firms
 # Top 6 countries plotted. We can do more than 6 for some plots but 6 is sensible	
-firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1895, end = 1909, threshold = 6)
+firms.list <- preplotGen(data.in = firms.df, by.var = "Country", start = 1895, end = 1909, threshold = 5)
 
 
 # Bar chart, similar to the patent plot
@@ -252,7 +274,7 @@ firms.country.fill <- ggplot(data = firms.list$Data,
 															 aes_string(x = "Year", y = firms.list$Type, fill = firms.list$By)) +
 													xlab("") + ylab(paste(firms.list$Type, "per year")) + 
 													opts(title = firms.list$Title) + geom_bar(stat = "identity") +
-													meyer.theme
+													meyer.theme + scale_fill_manual(values = firms.list$Colors)
 
 ## Theme and layer changes are likewise relient on the same syntax and functions
 
@@ -262,7 +284,8 @@ firms.country.inset <- firms.country.fill + inset.legend
 
 
 firms.country.facet <- firms.country.fill + insetFacetLabel(firms.list) +
-	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)
+	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
+	scale_colour_manual(values = firms.list$Colors)
 
 
 ### Club/Firm plots
