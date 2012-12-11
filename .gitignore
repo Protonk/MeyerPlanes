@@ -8,3 +8,5 @@ Icon\r
 Images
 Data/.DS_Store
 .Rapp.history
+*.xls
+*.ods
