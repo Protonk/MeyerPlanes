@@ -341,6 +341,38 @@ articles.lang.inset <- articles.lang.fill + inset.legend
 articles.lang.facet <- articles.lang.fill + insetFacetLabel(articles.list) +
   opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)	
 
+## article line plots
+
+# harcoded estimates
+# these will eventually be moved higher up in the flow
+
+
+articles.est <- read.csv("/Users/protonk/R/Dropbox/MeyerPlanes/Data/Publications/estimates.csv", as.is = TRUE) 
+articles.total <- ddply(articles.list$Data, "Year", function(x) data.frame(Articles = sum(x[, "Articles"])))
+# rbind and drop last row of article total
+articles.total <- rbind(articles.total[-nrow(articles.total), ], articles.est)
+rm(articles.est)
+articles.total <- data.frame(articles.total, Language = "Total")
+
+# merge with article data (makes plotting easier)
+articles.list.hc <- articles.list
+
+articles.list.hc$Data <- rbind(articles.list.hc$Data, articles.total)
+articles.list.hc$Data <- articles.list.hc$Data[order(articles.list.hc$Data[, "Year"]), ]
+
+# adjust hardcoded values to the list
+
+articles.list.hc$Title <- "Aeronautically-relevant articles by language 1870-1916"
+articles.list.hc$Range <- c(1870, 1916)
+
+# plot it!
+
+ggplot(data = articles.list.hc$Data, aes_string(x = "Year", y = articles.list.hc$Type, colour = articles.list.hc$By)) + xlab("") + 
+  geom_line(aes(linetype = Language), size = 1.5) + 
+  scale_linetype_manual("", values = c(rep("solid", 5), "dashed"), guide = FALSE) +
+  ylab(paste(articles.list.hc$Type, "per year")) + 
+  opts(title = articles.list.hc$Title)  + 
+  meyer.theme + xlim(1890, 1916) + inset.legend
 
 ### Exhibits
 
