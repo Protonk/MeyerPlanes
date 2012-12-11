@@ -2,11 +2,9 @@
 .Rhistory
 .RData
 MeyerPlanes.Rproj
-.DS_Store
+*.DS_Store
 .dropbox
-Icon\r
 Images
-Data/.DS_Store
 .Rapp.history
 *.xls
 *.ods
