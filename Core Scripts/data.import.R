@@ -132,7 +132,7 @@ articles.df <- data.frame(llply(articles.df, function(x) iconv(x, "latin1", "UTF
 
 ## Paths and csv
 
-path.exhibits <- file.path(getwd(), "Data", "Exhibitions", "exhibitions0824.csv")
+path.exhibits <- file.path(getwd(), "Data", "Exhibitions", "exhibitions_0m.csv")
 
 exhibits.df <- read.csv(path.exhibits, as.is = TRUE, na.strings = c("NA", ""))
 exhibits.df <- dropAllNA(exhibits.df)

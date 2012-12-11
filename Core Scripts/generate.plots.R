@@ -50,7 +50,8 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 													patents.df = "Patents",
 													clubs.df = "Clubs",
 													firms.df = "Firms",
-													articles.df = "Articles")		
+													articles.df = "Articles",
+													exhibits.df = "Exhibits")		
 	# Range of years
 	year.range <- c(start, end)																			
 	##  Split the dataset by year and the "by.var" column and generate a dataframe of counts
@@ -105,7 +106,8 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 											 Patents = "Aeronautically-relevant patents by",
 											 Clubs = "Aeronautical club starts by",
 											 Firms = "Aeronautical firm starts by",
-											 Articles = "Aeronautically-relevant articles by")
+											 Articles = "Aeronautically-relevant articles by",
+											 Exhibits = "Aeronautically-relevant exhibitions by")
 	
 	# Add a dataframe for annotation (sorry, but ggplot is built like this)
 	labels.df <- labelLoc(Data = preplot.df, By = by.var, Type = type.inferred)
@@ -124,7 +126,7 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", start = 1850, e
 							Colors = color.out,
 							Title = paste(type.text, by.var.text, sep = " ")))
 }
-preplotGen(data.in = patents.df, by.var = "Country", start = 1860, end = 1916)
+
 
 # Plots by year should come from a common expectation of structure.
 # Year is the cleaned up start year, publication year or year applied (depending on the dataset)
@@ -340,4 +342,24 @@ articles.lang.fill <- ggplot(data = articles.list$Data,
 articles.lang.inset <- articles.lang.fill + inset.legend	
 
 articles.lang.facet <- articles.lang.fill + insetFacetLabel(articles.list) +
-  opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)							
+  opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)	
+
+
+### Exhibits
+
+exhibits.list <- preplotGen(data.in = exhibits.df, by.var = "Country", start = 1870, end = 1916, threshold = 4)	
+
+exhibits.country.fill <- 	ggplot(data = exhibits.list$Data, 
+															 aes_string(x = "Year", y = exhibits.list$Type, fill = exhibits.list$By)) +
+													xlab("") + ylab(paste(exhibits.list$Type, "per year")) + 
+													opts(title = exhibits.list$Title) + geom_bar(stat = "identity") +
+													meyer.theme + scale_fill_manual(values = exhibits.list$Colors)				
+
+exhibits.country.inset <- exhibits.country.fill + inset.legend		
+
+exhibits.country.facet <- exhibits.country.fill + insetFacetLabel(exhibits.list) +
+  opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
+	scale_colour_manual(values = exhibits.list$Colors)
+
+											
+													
