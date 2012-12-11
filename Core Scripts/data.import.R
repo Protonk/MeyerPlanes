@@ -1,11 +1,6 @@
 #### General import for Patents, firms, clubs and articles
 #### Whole file can be run as a script or sections can be run individually
 
-### Dependencies
-
-# Data munching library. Split lists, arrays, dataframes and operate piecewise.
-library(plyr)
-
 ### Utility functions
 
 # Drops rows and columns with all NA values
@@ -114,7 +109,7 @@ names(firms.df) <- c("Short Name",
 										 
 ### Articles
 
-path.articles <- file.path(getwd(), "Data", "Brockett", "articles0808.csv")
+path.articles <- file.path(getwd(), "Data", "Publications", "articles0808.csv")
 
 # right now titles are garbled due to encoding issues.
 # NA strings for "0" and "-" in order to easily capture and note these strings
