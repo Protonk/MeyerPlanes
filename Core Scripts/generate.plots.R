@@ -1,6 +1,3 @@
-# Plotting script for patents.df 
-
-library(ggplot2) 
 
 ### Preplotting
 

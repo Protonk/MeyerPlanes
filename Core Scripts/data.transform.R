@@ -1,8 +1,4 @@
 
-# String processing library. Doesn't add too much to R but makes a number of functions
-# more sensible
-library(stringr)
-
 
 ### Utility functions
 
