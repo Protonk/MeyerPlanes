@@ -11,13 +11,13 @@
 # plyr is a data manipulation package which helps eliminate a lot of pathological loops
 # and needlessly complex structures. 
 
+library(plyr)
+
 ## reshape2
 # reshape2 offers a faster implementation of the melt/cast functionality in base R
 # we use it to build some plots
 
 library(reshape2)
-
-library(plyr)
 
 ### ggplot2
 # ggplot2 (occasionally just referred to in the comments as ggplot) is the workhorse dependency
@@ -32,8 +32,7 @@ library(ggplot2)
 
 library(grid)
 
-
-### stringr
+## stringr
 # Another Hadley Wickham package, stringr simplifies some text processing tasks. I haven't
 # yet decided whether to migrate all string processing over to stringr
 
