@@ -12,6 +12,7 @@ dropAllNA <- function(data) {
 	col.ind <- apply(data, 2, function(x) any(!is.na(x)))
 	data.out <- data[row.ind, ]
 	data.out <- data.out[, col.ind]
+	rownames(data.out) <- as.character(1:nrow(data.out))
 	return(data.out)
 }
 
@@ -111,7 +112,7 @@ names(firms.df) <- c("Short Name",
 
 path.articles <- file.path(getwd(), "Data", "Publications", "articles0808.csv")
 
-# right now titles are garbled due to encoding issues.
+
 # NA strings for "0" and "-" in order to easily capture and note these strings
 articles.df <- read.csv(path.articles, header = FALSE, as.is = TRUE, na.strings = c(NA, "-", "0"))
 

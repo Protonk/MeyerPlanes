@@ -36,22 +36,6 @@ breakMultiples <- function(data, column, split.regex = ", | and ") {
 }
 
 
-## naming splits
-## split by names is a bit more quirky
-
-name.split <- str_split(patents.df[, "Authors"], ", and|;")
-commonNameRev <- function(x) {
-	if (str_count(x, ",") == 1) {
-		x <- paste0(rev(str_split_fixed(x, ",\\s+", 2)), collapse = " ")
-	} else if (str_count(x, ",") == 2) {
-		x <- paste0(str_split_fixed(x, ",\\s+", 3)[c(2,3,1)], collapse = " ")
-	}
-	return(x)
-}
-
-lapply(name.split
-
-
 ## Combine multiple locations with some other column
 
 # The idea here is to expand on our ddply function for one column
@@ -77,7 +61,7 @@ ddplyMultiple <- function(data, inputcol, comparison) {
 																					"Count")
 	# For each classifier count the comparisons and add them
 	# to df.reduced
-	for (i in (1:(ncol(multiple.breakout) - 1))) {
+	for (i in 1:ncol(multiple.breakout)) {
     intermediate.reduced <- ddply(multiple.comb, c(i,ncol(multiple.comb)), "nrow")
     names(intermediate.reduced) <- working.names
     df.reduced <- rbind(df.reduced, intermediate.reduced)
@@ -92,6 +76,21 @@ ddplyMultiple <- function(data, inputcol, comparison) {
 	df.reduced <- df.reduced[, c(comparison, inputcol, "Count")]
 	return(df.reduced)
 }
+
+## naming splits
+## split by names is a bit more quirky
+
+# name.split <- str_split(patents.df[, "Authors"], ", and|;")
+commonNameRev <- function(x) {
+	if (str_count(x, ",") == 1) {
+		x <- paste0(rev(str_split_fixed(x, ",\\s+", 2)), collapse = " ")
+	} else if (str_count(x, ",") == 2) {
+		x <- paste0(str_split_fixed(x, ",\\s+", 3)[c(2,3,1)], collapse = " ")
+	}
+	return(x)
+}
+
+
 
 
 ## Mark "?", drop whitespace and update NA rows
@@ -111,7 +110,6 @@ markUnsure <- function(data, column) {
 	return(data)
 }
 	
-
 
 
 ###### Individual dataset operations
