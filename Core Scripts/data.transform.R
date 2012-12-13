@@ -16,32 +16,40 @@ capwords <- function(s, strict = FALSE) {
 # reusable function
 # Breaks columns w/ multiple classifications into single classifications
 
-breakMultiples <- function(data, column, split.regex = ", | and ", binary = TRUE) {
+breakMultiples <- function(data, column, split.regex = ", | and ") {
   # strsplit creates a list from the splitting regex
-  mult.list <- strsplit(data[, column], split.regex)
-  # grab length for each list element
-  mult.cols <- laply(mult.list, length)
+  mult.list <- str_split(data[, column], split.regex)
+  # max columns to form matrix & name columns
+  max.cols <- max(sapply(mult.list, length))
   # fill space out first (makes it a little faster and easier to understand)
   prefill.mat <- matrix(NA,
                         nrow = nrow(data),
-                        ncol = max(mult.cols))
-  colnames(prefill.mat) <- 
+                        ncol = max.cols)
   # select only those elements which are in the ith category
-  for (i in 1:max(mult.cols)) {
-    prefill.mat[, i] <- laply(mult.list, `[`, i)
+  for (i in 1:max.cols) {
+    prefill.mat[, i] <- sapply(mult.list, `[`, i)
   }
   df.out <- data.frame(lapply(data.frame(prefill.mat), factor))
 
-  # Note for where there are multiple columns
-  if (binary) {
-    df.out <- data.frame(cbind(df.out, mult.cols > 1))
-    }
-  else {
-    df.out <- data.frame(cbind(df.out, mult.cols))
-  }
-  names(df.out) <- c(paste(column, "Category", 1:max(mult.cols), sep = " "), "Multiple Cats")
+  names(df.out) <- c(paste(column, "Category", 1:max.cols, sep = " "))
   return(df.out)
 }
+
+
+## naming splits
+## split by names is a bit more quirky
+
+name.split <- str_split(patents.df[, "Authors"], ", and|;")
+commonNameRev <- function(x) {
+	if (str_count(x, ",") == 1) {
+		x <- paste0(rev(str_split_fixed(x, ",\\s+", 2)), collapse = " ")
+	} else if (str_count(x, ",") == 2) {
+		x <- paste0(str_split_fixed(x, ",\\s+", 3)[c(2,3,1)], collapse = " ")
+	}
+	return(x)
+}
+
+lapply(name.split
 
 
 ## Combine multiple locations with some other column
