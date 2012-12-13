@@ -152,14 +152,14 @@ insetFacetLabel <- function(preplot, facet = NULL) {
 
 inset.legend <- opts(legend.background = theme_rect(fill="white"), 
                      legend.justification=c(0,1), legend.position=c(0,1), 
-                     legend.text = theme_text(size = 16)) 
+                     legend.text = theme_text(size = 18)) 
 
 # requested changes to display options
 
-meyer.theme <- opts(plot.title = theme_text(size=20),
+meyer.theme <- opts(plot.title = theme_text(size=22),
 									  axis.text.x  = theme_text(size = 14),
-									  axis.text.y = theme_text(size = 12),
-									  axis.title.y = theme_text(size = 13, angle = 90),
+									  axis.text.y = theme_text(size = 13),
+									  axis.title.y = theme_text(size = 15, angle = 90),
 									  panel.background = theme_rect(fill='#EBEBEB', colour=NA))
 
 
@@ -327,7 +327,7 @@ clubs.firms.fill <- ggplot(data = clubs.firms.list$Data, aes(x = Year, y = Start
 # Start in 1870 as there is a much longer lead-in for articles than clubs, etc.
 # ends at 1909 because Brockett is 1910
 # set threshold to 4
-articles.list <- preplotGen(data.in = articles.df, by.var = "Language", start = 1870, end = 1909, threshold = 4)
+articles.list <- preplotGen(data.in = articles.df, by.var = "Language", start = 1850, end = 1909, threshold = 4)
 
 
 articles.lang.fill <- ggplot(data = articles.list$Data, 
