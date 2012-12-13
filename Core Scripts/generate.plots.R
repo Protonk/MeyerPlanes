@@ -36,6 +36,73 @@ names(color.key) <- c('United Kingdom','United States', 'Germany','France',
 											'Russia', 'Italy', 'Canada', 'Norway', 
 											'Switzerland', 'Other')
 
+## Split into multiples 
+# I'll be doing this for firms, clubs, articles and patents, so this will be turned into a
+# reusable function
+# Breaks columns w/ multiple classifications into single classifications
+
+breakMultiples <- function(data, column, split.regex = ", | and ") {
+  # strsplit creates a list from the splitting regex
+  mult.list <- str_split(data[, column], split.regex)
+  # max columns to form matrix & name columns
+  max.cols <- max(sapply(mult.list, length))
+  # fill space out first (makes it a little faster and easier to understand)
+  prefill.mat <- matrix(NA,
+                        nrow = nrow(data),
+                        ncol = max.cols)
+  # select only those elements which are in the ith category
+  for (i in 1:max.cols) {
+    prefill.mat[, i] <- sapply(mult.list, `[`, i)
+  }
+  df.out <- data.frame(lapply(data.frame(prefill.mat), factor))
+
+  names(df.out) <- c(paste(column, "Category", 1:max.cols, sep = " "))
+  return(df.out)
+}
+
+
+## Combine multiple locations with some other column
+
+# The idea here is to expand on our ddply function for one column
+# We have multiple columns for classification/scope/etc. and we want
+# to sum each up by year or some other column
+
+# Right now we only have the "nrow" function in ddply. future versions will
+# allow for all functions ddply allows
+
+
+ddplyMultiple <- function(data, inputcol, comparison) {
+	# generate breakouts and match with comparison column
+	multiple.breakout <- breakMultiples(data, inputcol)
+	multiple.comb <- cbind(multiple.breakout, data[, comparison])
+
+	# Create a 0 row data frame so we can populate it in a for loop
+	# multiple.breakout should have columns for each separator (at least one)
+	# plus a column for the "split" logical variable
+	df.reduced <- data.frame(matrix(NA, ncol = 3, nrow = 0))
+	# name it based on input
+	working.names <- names(df.reduced) <- c(inputcol,
+																					comparison,
+																					"Count")
+	# For each classifier count the comparisons and add them
+	# to df.reduced
+	for (i in 1:ncol(multiple.breakout)) {
+    intermediate.reduced <- ddply(multiple.comb, c(i,ncol(multiple.comb)), "nrow")
+    names(intermediate.reduced) <- working.names
+    df.reduced <- rbind(df.reduced, intermediate.reduced)
+  }
+  # convert from factor			
+  # If years get turned into factors R will return the factor codes unless converted
+  # to characters first								 
+	df.reduced[, comparison] <- as.numeric(as.character(df.reduced[, comparison]))
+	df.reduced[, inputcol] <- as.character(df.reduced[, inputcol])
+	df.reduced <- df.reduced[complete.cases(df.reduced), ]
+	df.reduced[, inputcol] <- factor(df.reduced[, inputcol])
+	df.reduced <- df.reduced[, c(comparison, inputcol, "Count")]
+	return(df.reduced)
+}
+
+
 ## Preplot functions for by year/country (or year/field, etc.) plots
 ## Generates list for preplotting so we can pluck out variables of interest for later.
 
