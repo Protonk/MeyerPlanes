@@ -36,31 +36,6 @@ names(color.key) <- c('United Kingdom','United States', 'Germany','France',
 											'Russia', 'Italy', 'Canada', 'Norway', 
 											'Switzerland', 'Other')
 
-## Split into multiples 
-# I'll be doing this for firms, clubs, articles and patents, so this will be turned into a
-# reusable function
-# Breaks columns w/ multiple classifications into single classifications
-
-breakMultiples <- function(data, column, split.regex = ", | and ") {
-  # strsplit creates a list from the splitting regex
-  mult.list <- str_split(data[, column], split.regex)
-  # max columns to form matrix & name columns
-  max.cols <- max(sapply(mult.list, length))
-  # fill space out first (makes it a little faster and easier to understand)
-  prefill.mat <- matrix(NA,
-                        nrow = nrow(data),
-                        ncol = max.cols)
-  # select only those elements which are in the ith category
-  for (i in 1:max.cols) {
-    prefill.mat[, i] <- sapply(mult.list, `[`, i)
-  }
-  df.out <- data.frame(lapply(data.frame(prefill.mat), factor))
-
-  names(df.out) <- c(paste(column, "Category", 1:max.cols, sep = " "))
-  return(df.out)
-}
-
-
 ## Combine multiple locations with some other column
 
 # The idea here is to expand on our ddply function for one column
@@ -71,9 +46,23 @@ breakMultiples <- function(data, column, split.regex = ", | and ") {
 # allow for all functions ddply allows
 
 
-ddplyMultiple <- function(data, inputcol, comparison) {
+ddplyMultiple <- function(data, inputcol, comparison, split.regex = ", | and ") {
 	# generate breakouts and match with comparison column
-	multiple.breakout <- breakMultiples(data, inputcol)
+	# strsplit creates a list from the splitting regex
+  mult.list <- str_split(data[, inputcol], split.regex)
+  # max columns to form matrix & name columns
+  max.cols <- max(sapply(mult.list, length))
+  # fill space out first (makes it a little faster and easier to understand)
+  prefill.mat <- matrix(NA,
+                        nrow = nrow(data),
+                        ncol = max.cols)
+  # select only those elements which are in the ith category
+  for (i in 1:max.cols) {
+    prefill.mat[, i] <- sapply(mult.list, `[`, i)
+  }
+  multiple.breakout <- data.frame(lapply(data.frame(prefill.mat), factor))
+
+  names(multiple.breakout) <- c(paste(inputcol, "Category", 1:max.cols, sep = " "))
 	multiple.comb <- cbind(multiple.breakout, data[, comparison])
 
 	# Create a 0 row data frame so we can populate it in a for loop
