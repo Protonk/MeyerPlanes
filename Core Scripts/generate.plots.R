@@ -373,7 +373,7 @@ clubs.firms.fill <- ggplot(data = clubs.firms.list$Data, aes(x = Year, y = Start
 # Start in 1870 as there is a much longer lead-in for articles than clubs, etc.
 # ends at 1909 because Brockett is 1910
 # set threshold to 4
-articles.list <- preplotGen(data.in = articles.df, by.var = "Language", start = 1850, end = 1909, threshold = 4)
+articles.list <- preplotGen(data.in = articles.df, by.var = "Language", threshold = 4)
 
 
 articles.lang.fill <- ggplot(data = articles.list$Data, 
@@ -424,7 +424,7 @@ ggplot(data = articles.list.hc$Data, aes_string(x = "Year", y = articles.list.hc
 
 ### Exhibits
 
-exhibits.list <- preplotGen(data.in = exhibits.df, by.var = "Country", start = 1870, end = 1916, threshold = 4)	
+exhibits.list <- preplotGen(data.in = exhibits.df, by.var = "Country", threshold = 4)	
 
 exhibits.country.fill <- 	ggplot(data = exhibits.list$Data, 
 															 aes_string(x = "Year", y = exhibits.list$Type, fill = exhibits.list$By)) +
