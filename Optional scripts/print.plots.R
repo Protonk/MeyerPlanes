@@ -60,7 +60,7 @@ printPng <- function(source = "clubs", object, name, layer) {
 
 # Structure here is obviously amenable to one big call to sapply with these
 # three in a matrix. But this works for now
-plot.objects <- ls()[sapply(ls(), function(x) class(get(x))) %in% "ggplot"]
+plot.objects <- ls()[sapply(ls(), function(x) any(class(get(x)) %in% "ggplot"))]
 plot.objects <- plot.objects[!grepl("fill", plot.objects)]
 plot.sources <- sapply(strsplit(plot.objects, "\\."), `[`, 1)
 plot.layers <- sapply(strsplit(plot.objects, "\\."), tail, 1)
