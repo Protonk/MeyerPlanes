@@ -48,13 +48,13 @@ patents.df <- patents.df[as.logical(patents.df[, "related.to.aircraft."]), ]
 patents.df <- patents.df[, c(7, 1, 2:5, 10)]
 
 # Year is the year protection was applied, not filing
-names(patents.df) <- c("English.Title.Summary",
-											 "Year",
-                       "Country",
-                       "Authors",
-                       "Field",
-                       "Patent.No",
-                       "Original.Language.Title")
+names(patents.df) <-  c("English.Title.Summary",
+						"Year",
+						"Country",
+						"Authors",
+						"Field",
+						"Patent.No",
+						"Original.Language.Title")
                        
 
 ### Clubs
@@ -72,12 +72,12 @@ clubs.df <- dropAllNA(clubs.df)
 clubs.df <- clubs.df[, c(1, 9, 10, 2:5)]
 
 names(clubs.df) <- c("Name",
-										 "Start Year",
-										 "End Year",
-										 "Scope",
-										 "Affiliate of",
-										 "Country",
-										 "City")
+					 "Start Year",
+					 "End Year",
+					 "Scope",
+					 "Affiliate of",
+					 "Country",
+					 "City")
 										 
 
 
@@ -98,14 +98,14 @@ firms.df <- dropAllNA(firms.df)
 firms.df <- firms.df[, c(1:3, 9, 4:8)]
 
 names(firms.df) <- c("Short Name",
-										 "Full Name",
-										 "Start Year",
-										 "End Year",
-										 "Country",
-										 "Place",
-										 "Type",
-										 "Founding Info",
-										 "Product Info")
+					 "Full Name",
+					 "Start Year",
+					 "End Year",
+					 "Country",
+					 "Place",
+					 "Type",
+					 "Founding Info",
+					 "Product Info")
 								 
 										 
 ### Articles
@@ -134,17 +134,17 @@ exhibits.df <- read.csv(path.exhibits, as.is = TRUE, na.strings = c("NA", ""))
 exhibits.df <- dropAllNA(exhibits.df)
 
 
-names(exhibits.df) <- c("Name", 
-													 "Type", 
-													 "Place", 
-													 "Country", 
-													 "Year", 
-													 "Month", 
-													 "Start.day", 
-													 "Days", 
-													 "Notes......prominent.in.lit.", 
-													 "Sources", 
-													 "X")
+names(exhibits.df) <-  c("Name", 
+						 "Type", 
+						 "Place", 
+						 "Country", 
+						 "Year", 
+						 "Month", 
+						 "Start.day", 
+						 "Days", 
+						 "Notes......prominent.in.lit.", 
+						 "Sources", 
+						 "X")
 exhibits.df <- exhibits.df[, 1:8]
 
 													 
