@@ -53,7 +53,7 @@ markUnsure <- function(data, column) {
 
 # Matches country codes to full names
 langs.str <- c('United Kingdom','Germany','France','United States', 'Norway')
-patents.df[, "Country"] <- langs.str[match(patents.df[, "Country"], c("br", "de", "fr", "us", "no"))]
+patents.df[, "Country"] <- langs.str[match(tolower(patents.df[, "Country"]), c("br", "de", "fr", "us", "no"))]
 
 ## Authors
 
