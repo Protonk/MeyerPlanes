@@ -415,7 +415,7 @@ articles.lang.facet <- articles.lang.fill + insetFacetLabel(articles.list) +
 # these will eventually be moved higher up in the flow
 
 
-articles.est <- read.csv("/Users/protonk/dev/R/MeyerPlanes/Data/Publications/estimates.csv", as.is = TRUE) 
+articles.est <- read.csv(file.path(getwd(), "Data", "Publications/estimates.csv"), as.is = TRUE) 
 articles.total <- ddply(articles.list$Data, "Year", function(x) data.frame(Articles = sum(x[, "Articles"])))
 # rbind and drop last row of article total
 articles.total <- rbind(articles.total[-nrow(articles.total), ], articles.est)
