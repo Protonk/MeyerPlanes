@@ -31,17 +31,8 @@ footText <- function(source) {
 
 
 # Naming for generated images
-outputName <- function(plot.obj, layer) {
-	xval <- as.character(plot.obj$mapping$x)
-  # year ranges
-	range <- ifelse(is.numeric(plot.obj$data[, xval]), paste(range(plot.obj$data[, xval]), collapse = "-"), NULL)
-	# Faceted plots have multiple mappings. Ends up looking weird
-  if (length(plot.obj$facet) > 1) {
-    type <- tolower(paste0(plot.obj$options$labels$y, "-", as.character(plot.obj$facet$rows)))
-	} else {
-	  type <- tolower(paste(unlist(Filter(nchar, plot.obj$options$labels)), collapse = "-"))
-	}
-	return(paste(type, layer, range))
+outputName <- function(plot.obj) {
+	return(plot.obj$labels$title)
 }
 
 
@@ -66,7 +57,7 @@ plot.sources <- sapply(strsplit(plot.objects, "\\."), `[`, 1)
 plot.layers <- sapply(strsplit(plot.objects, "\\."), tail, 1)
 plot.names <- character(length(plot.objects))
 for (i in seq_along(plot.objects)) {
-	plot.names[i] <- outputName(get(plot.objects[i]), plot.layers[i])
+	plot.names[i] <- outputName(get(plot.objects[i]))
 	}
 
   
