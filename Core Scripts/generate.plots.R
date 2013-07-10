@@ -6,14 +6,18 @@
 # Add a column for annotation (sorry, but ggplot is built like this)
 # idea for building a small data frame and attaching w/
 # group = NULL from here: http://trinkerrstuff.wordpress.com/2012/09/01/add-text-annotations-to-ggplot2-faceted-plot/
-labelLoc <- function(Data , By, Type) {
+labelLoc <- function(Data , By, Type, yearMin = 1880) {
 	
 	labels.df <- ddply(Data, By, function(x) sum(x[, Type]))
 	names(labels.df)[2] <- "Count.Notation"
 	labels.df[, 1] <- as.character(labels.df[, 1])
 
 	# Locations
-	x.loc <- min(Data[, "Year"], na.rm = TRUE) + 1
+  if (!is.null(yearMin)) {
+    x.loc <- yearMin
+  } else {
+    x.loc <- min(Data[, "Year"], na.rm = TRUE) + 1
+  }
 	y.loc <- 0.6*max(ddply(Data, c(By), function(x) max(x[, Type]))[, 2])
 
 	labels.df[, "x"] <- x.loc
@@ -175,10 +179,18 @@ insetFacetLabel <- function(preplot, facet = NULL) {
 	} else {
 		By <-preplot$By
 	}
-					
-	return(list(Labels = geom_text(data = preplot$Labels, aes_string(x = "x", y = "y.By", label = By, colour = By, group = NULL), show_guide = FALSE, hjust = 0, size = 7),
-							N = geom_text(data = preplot$Labels, aes(x = x, y = y.Count, label = paste("N =", Count.Notation), group = NULL), show_guide = FALSE, hjust = 0, size = 5),
-							Facet = facet_grid(paste(By, "~ .") , labeller = label_bquote(''))))    
+	return(list(Labels = geom_text(data = preplot$Labels,
+                                 aes_string(x = "x", y = "y.By",
+                                     label = By, colour = By,
+                                     group = NULL),
+                                 show_guide = FALSE, hjust = 0, size = 7),
+							N = geom_text(data = preplot$Labels,
+                            aes(x = x, y = y.Count,
+                                label = paste("N =", Count.Notation),
+                                group = NULL),
+                            show_guide = FALSE, hjust = 0, size = 5),
+							Facet = facet_grid(paste(By, "~ .") ,
+                                 labeller = label_bquote(''))))    
 }
 
 
@@ -228,12 +240,13 @@ patents.list <- preplotGen(data.in = patents.df, by.var = "Country")
 # "stack" is the default presentation
 
 
-patents.country.fill <- ggplot(data = patents.list$Data, 
-															 aes_string(x = "Year", y = patents.list$Type, fill = patents.list$By)) +
+patents.country.fill <- ggplot() +
 													xlab("") + ylab(paste(patents.list$Type, "per year")) + 
 													xlim(1860, 1914) +
 													opts(title = "Aeronautically relevant patents by Country 1860-1914") + 
-													geom_bar(stat = "identity") + scale_fill_manual(values = patents.list$Colors) +
+													geom_bar(data = patents.list$Data,
+                                   aes_string(x = "Year", y = patents.list$Type, fill = patents.list$By),
+                                   stat = "identity") + scale_fill_manual(values = patents.list$Colors) +
 													meyer.theme 
 
 
@@ -246,9 +259,16 @@ patents.country.inset <- patents.country.fill + inset.legend
 # Somewhat more complicated due to the nature of facet_grid()
 # the options drop the facet labels 
 
-patents.country.facet <- patents.country.fill +  insetFacetLabel(patents.list) +
- opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
- scale_colour_manual(values = patents.list$Colors)
+patents.country.facet <- ggplot() + insetFacetLabel(patents.list) +
+  xlab("") + ylab(paste(patents.list$Type, "per year")) + 
+  xlim(1860, 1914) +
+  opts(title = "Aeronautically relevant patents by Country 1860-1914") + 
+  geom_bar(data = patents.list$Data,
+           aes_string(x = "Year", y = patents.list$Type, fill = patents.list$By),
+           stat = "identity") + scale_fill_manual(values = patents.list$Colors) +
+  meyer.theme + opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
+  scale_colour_manual(values = patents.list$Colors)
+
 
 
 

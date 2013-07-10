@@ -25,17 +25,18 @@ dropAllNA <- function(data) {
 
 ## Path and read.csv
 
-path.patents <- file.path(getwd(), "Data", "Patents", "patents0916.csv")
-path.norway <- file.path(getwd(), "Data", "Patents", "Norsk_patents_Oct2012_0k.csv")
+path.patents <- file.path(getwd(), "Data", "Patents", "AeroPatents_2013_07_09converted.csv")
+# path.norway <- file.path(getwd(), "Data", "Patents", "Norsk_patents_Oct2012_0k.csv")
 
 # na.strings modified to include empty date strings
 
 patents.df <- read.csv(path.patents, as.is = TRUE, na.strings = c("NA", ""))
-norway.df <- read.csv(path.norway, as.is = TRUE, na.strings = c("NA", ""))
 
-names(norway.df) <- names(patents.df)
+# norway.df <- read.csv(path.norway, as.is = TRUE, na.strings = c("NA", ""))
 
-patents.df <- rbind(patents.df, norway.df)
+# names(norway.df) <- names(patents.df)
+
+# patents.df <- rbind(patents.df, norway.df)
 
 patents.df <- dropAllNA(patents.df)
 
@@ -43,18 +44,18 @@ patents.df <- dropAllNA(patents.df)
 # Rename columns
 
 # drop a number of columns which won't be used for analysis. 
-# specifically, drop unrelated to aircraft patents for now
-patents.df <- patents.df[as.logical(patents.df[, "related.to.aircraft."]), ]
-patents.df <- patents.df[, c(7, 1, 2:5, 10)]
+
+patents.df <- patents.df[, c(7, 1, 2:5, 10, 12)]
 
 # Year is the year protection was applied, not filing
 names(patents.df) <-  c("English.Title.Summary",
-						"Year",
-						"Country",
-						"Authors",
-						"Field",
-						"Patent.No",
-						"Original.Language.Title")
+						            "Year",
+						            "Country",
+						            "Authors",
+						            "Field",
+					            	"Patent.No",
+						            "Original.Language.Title",
+                        "Related.To.Aircraft")
                        
 
 ### Clubs
