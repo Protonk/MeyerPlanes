@@ -1,34 +1,6 @@
 
 ### Preplotting
 
-## Generate labels
-
-# Add a column for annotation (sorry, but ggplot is built like this)
-# idea for building a small data frame and attaching w/
-# group = NULL from here: http://bit.ly/Obc0aA
-labelLoc <- function(Data , By, Type) {	
-	labels.df <- ddply(Data, By, function(x) sum(x[, Type]))
-	names(labels.df)[2] <- "Count.Notation"
-	labels.df[, 1] <- as.character(labels.df[, 1])
-
-  x.loc <- min(Data[, "Year"], na.rm = TRUE) + 1
-	y.loc <- 0.6*max(ddply(Data, c(By), function(x) max(x[, Type]))[, 2])
-
-	labels.df[, "x"] <- x.loc
-	labels.df[, "y.By"] <- y.loc
-	labels.df[, "y.Count"] <- 0.6*y.loc
-	return(labels.df)
-}
-
-
-# Emulate/capture ggplot2 colors 
-# from http://stackoverflow.com/a/8197703/1188479
-
-gg_color_hue <- function(n) {
-  hues = seq(15, 375, length=n+1)
-  hcl(h=hues, l=65, c=100)[1:n]
-}
-
 ## Combine multiple locations with some other column
 
 # The idea here is to expand on our ddply function for one column
@@ -154,24 +126,11 @@ preplotGen <- function(data.in = patents.df,
 	preplot.df <- genThreshold(threshold = threshold)
 	
 	
-	# Add a dataframe for annotation (sorry, but ggplot is built like this)
-	labels.df <- labelLoc(Data = preplot.df, By = by.var, Type = data.type)
-	
-	# Create a consistent color scheme
-	color.key <- gg_color_hue(10)
-  color.match <-   switch(by.var,
-                          Country = c(langs.str, "Other"),
-                          Language = art.languages)
-  color.key <- gg_color_hue(length(color.match))
-	color.out <- color.key[color.match %in% labels.df[, by.var]]
+
 	
 	# return a list object so we can pluck out what we need to plot later 
 	# and not carry arguments around							 
-	return(list(Data = preplot.df,
-							Type = data.type,
-							By = by.var,
-							Labels = labels.df,
-							Colors = color.out))
+	return(preplot.df)
 }
 
 
@@ -179,19 +138,33 @@ preplotGen <- function(data.in = patents.df,
 # Year is the cleaned up start year, publication year or year applied
 # Country (or language, or anything else)
 
+## Generate labels
+
+# Add a column for annotation (sorry, but ggplot is built like this)
+# idea for building a small data frame and attaching w/
+# group = NULL from here: http://bit.ly/Obc0aA
+labelLoc <- function(Data , By, Type) { 
+  labels.df <- ddply(Data, By, function(x) sum(x[, Type]))
+  names(labels.df)[2] <- "Count.Notation"
+  labels.df[, 1] <- as.character(labels.df[, 1])
+
+  x.loc <- min(Data[, "Year"], na.rm = TRUE) + 1
+  y.loc <- 0.6*max(ddply(Data, c(By), function(x) max(x[, Type]))[, 2])
+
+  labels.df[, "x"] <- x.loc
+  labels.df[, "y.By"] <- y.loc
+  labels.df[, "y.Count"] <- 0.6*y.loc
+  return(labels.df)
+}
+
 # add facet labels
-insetFacetLabel <- function(preplot, facet = NULL) {
-	if (!is.null(facet)) {
-		By <- facet
-	} else {
-		By <-preplot$By
-	}
-	return(list(Labels = geom_text(data = preplot$Labels,
+insetFacetLabel <- function(label.data = labels.df, By) {
+	return(list(Labels = geom_text(data = label.data,
                                  aes_string(x = "x", y = "y.By",
                                      label = By, colour = By,
                                      group = NULL),
                                  show_guide = FALSE, hjust = 0, size = 7),
-							N = geom_text(data = preplot$Labels,
+							N = geom_text(data = label.data,
                             aes(x = x, y = y.Count,
                                 label = paste("N =", Count.Notation),
                                 group = NULL),
@@ -199,8 +172,6 @@ insetFacetLabel <- function(preplot, facet = NULL) {
 							Facet = facet_grid(paste(By, "~ .") ,
                                  labeller = label_bquote(''))))    
 }
-
-
 
 
 ### Themes
@@ -222,7 +193,7 @@ meyer.theme <- opts(plot.title = theme_text(size=22),
 
 #### Actual plots
 
-overallPlot <- function(By = "Country",
+overallPlot <- function(By = c("Country", "Language"),
                         data = c("Patents", "Clubs",
                                  "Firms", "Articles",
                                  "Exhibits"),
@@ -231,6 +202,7 @@ overallPlot <- function(By = "Country",
                         title = NULL,
                         facet = FALSE) {
   data.arg <- match.arg(data)
+  by.arg <- match.arg(By)
   data.src <- switch(data.arg,
                      Patents = patents.df,
                      Clubs = clubs.df,
@@ -242,25 +214,51 @@ overallPlot <- function(By = "Country",
     plot.title <- paste(title)
   } else {
     plot.title <- paste("Aeronautically-relevant",
-                        data.arg, "by", By,
+                        data.arg, "by", by.arg,
                         paste0(start, "-", end))
   }
-  preplot.l <- preplotGen(data.in = data.brushed,
-                          by.var = By,
+  preplot <- preplotGen(data.in = data.brushed,
+                          by.var = by.arg,
                           data.type = data.arg)
-  plot.base <- ggplot()
+
+  # Add a dataframe for annotation (sorry, but ggplot is built like this)
+  labels.df <- labelLoc(Data = preplot,
+                        By = by.arg,
+                        Type = data.arg)
+  # Create a consistent color scheme
+
+
+  fullColor <- function(label.data, By) {
+    names <- switch(By, 
+                    Country = c(langs.str, "Other"), 
+                    Language = art.languages)
+    # Emulate/capture ggplot2 colors 
+    # from http://stackoverflow.com/a/8197703/1188479
+    gg_color_hue <- function(n) {
+      hues = seq(15, 375, length=n+1)
+      hcl(h=hues, l=65, c=100)[1:n]
+    }
+    labels <- label.data[, By]
+    names <- append(names, setdiff(unique(labels), names))
+    color.key <- gg_color_hue(length(names))
+    return(color.key[names %in% labels])
+  }
+  color.out <- fullColor(labels.df, by.arg)
+
   if(facet) {
-    plot.base <- plot.base + insetFacetLabel(preplot.l) 
+    plot.base <- ggplot() + insetFacetLabel(labels.df, by.arg)
+  } else {
+    plot.base <- ggplot()    
   }
   plot.out <- plot.base +
-                geom_bar(data = preplot.l$Data,
+                geom_bar(data = preplot,
                          aes_string(x = "Year",
-                                    y = preplot.l$Type,
-                                    fill = preplot.l$By),
+                                    y = data.arg,
+                                    fill = by.arg),
                          stat = "identity") +
-                scale_fill_manual(values = preplot.l$Colors)
+                scale_fill_manual(values = color.out)
   plot.out <- plot.out +
-                ylab(paste(preplot.l$Type, "per year")) + ylab("") +
+                ylab(paste(data.arg, "per year")) + ylab("") +
                 ggtitle(plot.title)
                 meyer.theme
   if(facet) {
