@@ -159,11 +159,11 @@ preplotGen <- function(data.in = patents.df,
 	
 	# Create a consistent color scheme
 	color.key <- gg_color_hue(10)
-  color.countries <- c('United Kingdom','United States', 'Germany','France', 
-                       'Russia', 'Italy', 'Canada', 'Norway', 
-                       'Switzerland',  'Spain', 'Other')
-  color.key <- gg_color_hue(length(color.countries))
-	color.out <- color.key[color.countries %in% labels.df[, by.var]]
+  color.match <-   switch(by.var,
+                          Country = c(langs.str, "Other"),
+                          Language = art.languages)
+  color.key <- gg_color_hue(length(color.match))
+	color.out <- color.key[color.match %in% labels.df[, by.var]]
 	
 	# return a list object so we can pluck out what we need to plot later 
 	# and not carry arguments around							 
