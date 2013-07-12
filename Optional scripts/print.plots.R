@@ -32,7 +32,11 @@ footText <- function(source) {
 
 # Naming for generated images
 outputName <- function(plot.obj) {
-	return(plot.obj$labels$title)
+  title <- plot.obj$labels$title
+  if(length(plot.obj$facet) > 1) {
+    title <- paste(title, " Faceted")
+  }
+	return(title)
 }
 
 
