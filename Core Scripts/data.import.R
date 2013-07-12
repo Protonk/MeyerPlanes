@@ -45,14 +45,13 @@ patents.df <- patents.df[, c(7, 1, 2:5, 10, 12)]
 
 # Year is the year protection was applied, not filing
 names(patents.df) <-  c("English.Title.Summary",
-						            "Year",
-						            "Country",
-						            "Authors",
-						            "Field",
-					            	"Patent.No",
-						            "Original.Language.Title",
-                        "Related.To.Aircraft")
-                       
+												"Year",
+												"Country",
+												"Authors",
+												"Field",
+												"Patent.No",
+												"Original.Language.Title",
+												"Related.To.Aircraft")
 
 ### Clubs
 
@@ -137,16 +136,16 @@ exhibits.df <- dropAllNA(exhibits.df)
 
 
 names(exhibits.df) <-  c("Name", 
-						 "Type", 
-						 "Place", 
-						 "Country", 
-						 "Year", 
-						 "Month", 
-						 "Start.day", 
-						 "Days", 
-						 "Notes......prominent.in.lit.", 
-						 "Sources", 
-						 "X")
+												 "Type", 
+												 "Place", 
+												 "Country", 
+												 "Year", 
+												 "Month", 
+												 "Start.day", 
+												 "Days", 
+												 "Notes......prominent.in.lit.", 
+												 "Sources", 
+												 "X")
 exhibits.df <- exhibits.df[, 1:8]
 
 													 

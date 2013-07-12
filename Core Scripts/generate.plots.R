@@ -215,30 +215,12 @@ inset.legend <- opts(legend.background = theme_rect(fill="white"),
 # requested changes to display options
 
 meyer.theme <- opts(plot.title = theme_text(size=22),
-									  axis.text.x  = theme_text(size = 14),
-									  axis.text.y = theme_text(size = 13),
-									  axis.title.y = theme_text(size = 15, angle = 90),
-									  panel.background = theme_rect(fill='#EBEBEB', colour=NA))
-
-
-## Web/Presentation Theme
-## These will retain the gray background and some of the major/minor lines
-## 
-
-
-
+                    axis.text.x  = theme_text(size = 14),
+                    axis.text.y = theme_text(size = 13),
+                    axis.title.y = theme_text(size = 15, angle = 90),
+                    panel.background = theme_rect(fill='#EBEBEB', colour=NA))
 
 #### Actual plots
-
-
-
-### Patents
-
-## Generating the graph primitives
-
-# Going to 1914 here
-# Generate the list first. This way if we want to subset further or otherwise
-# fiddle with data (like ordering factors) we can
 
 overallPlot <- function(By = "Country",
                         data = c("Patents", "Clubs",
