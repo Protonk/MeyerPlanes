@@ -5,7 +5,8 @@
 
 # Add a column for annotation (sorry, but ggplot is built like this)
 # idea for building a small data frame and attaching w/
-# group = NULL from here: http://trinkerrstuff.wordpress.com/2012/09/01/add-text-annotations-to-ggplot2-faceted-plot/
+# group = NULL from here:
+# http://trinkerrstuff.wordpress.com/2012/09/01/add-text-annotations-to-ggplot2-faceted-plot/
 labelLoc <- function(Data , By, Type, yearMin = 1880) {
 	
 	labels.df <- ddply(Data, By, function(x) sum(x[, Type]))
@@ -50,7 +51,8 @@ names(color.key) <- c('United Kingdom','United States', 'Germany','France',
 # allow for all functions ddply allows
 
 
-ddplyMultiple <- function(data, inputcol, comparison, split.regex = ", | and ") {
+ddplyMultiple <- function(data, inputcol, comparison,
+                          split.regex = ", | and ") {
 	# generate breakouts and match with comparison column
 	# strsplit creates a list from the splitting regex
   mult.list <- str_split(data[, inputcol], split.regex)
@@ -66,7 +68,12 @@ ddplyMultiple <- function(data, inputcol, comparison, split.regex = ", | and ") 
   }
   multiple.breakout <- data.frame(lapply(data.frame(prefill.mat), factor))
 
-  names(multiple.breakout) <- c(paste(inputcol, "Category", 1:max.cols, sep = " "))
+  names(multiple.breakout) <- c(paste(inputcol,
+                                "Category"
+
+
+                                1:max.cols,
+                                sep = " "))
 	multiple.comb <- cbind(multiple.breakout, data[, comparison])
 
 	# Create a 0 row data frame so we can populate it in a for loop
@@ -80,13 +87,15 @@ ddplyMultiple <- function(data, inputcol, comparison, split.regex = ", | and ") 
 	# For each classifier count the comparisons and add them
 	# to df.reduced
 	for (i in 1:ncol(multiple.breakout)) {
-    intermediate.reduced <- ddply(multiple.comb, c(i,ncol(multiple.comb)), "nrow")
+    intermediate.reduced <- ddply(multiple.comb,
+                                  c(i,ncol(multiple.comb)),
+                                  "nrow")
     names(intermediate.reduced) <- working.names
     df.reduced <- rbind(df.reduced, intermediate.reduced)
   }
   # convert from factor			
-  # If years get turned into factors R will return the factor codes unless converted
-  # to characters first								 
+  # If years get turned into factors R will return the factor codes
+  # unless converted to characters first								 
 	df.reduced[, comparison] <- as.numeric(as.character(df.reduced[, comparison]))
 	df.reduced[, inputcol] <- as.character(df.reduced[, inputcol])
 	df.reduced <- df.reduced[complete.cases(df.reduced), ]
@@ -97,12 +106,15 @@ ddplyMultiple <- function(data, inputcol, comparison, split.regex = ", | and ") 
 
 
 ## Preplot functions for by year/country (or year/field, etc.) plots
-## Generates list for preplotting so we can pluck out variables of interest for later.
+## Generates list for preplotting so we can pluck out variables of interest.
 
 
-preplotGen <- function(data.in = patents.df, by.var = "Country", threshold = 6) {
+preplotGen <- function(data.in = patents.df,
+                       by.var = "Country",
+                       threshold = 6) {
 	
-	# deparse(substitute()) is an R trick to get a character representation of an object name
+	# deparse(substitute()) is an R trick to get
+  # a character representation of an object name
 	type.inferred <- switch(deparse(substitute(data.in)),
 													patents.df = "Patents",
 													clubs.df = "Clubs",
@@ -110,9 +122,12 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", threshold = 6) 
 													articles.df = "Articles",
 													exhibits.df = "Exhibits")		
 																		
-	##  Split the dataset by year and the "by.var" column and generate a dataframe of counts
+	## Split the dataset by year and the "by.var" column
+  ## and generate a dataframe of counts
 	if (type.inferred == "Firms") {
-		preplot.df <- ddplyMultiple(data = data.in, inputcol = by.var, comparison = "Year")
+		preplot.df <- ddplyMultiple(data = data.in,
+                                inputcol = by.var,   
+                                comparison = "Year")
 	} else {	
 		preplot.df <- ddply(data.in, c("Year", by.var), "nrow")
 	}
@@ -125,11 +140,21 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", threshold = 6) 
 	# Accepts same arguments from local function environment and
 	# generates plot info (and notation) for left out groups
 
-	genThreshold <- function(threshold, Data = preplot.df, By = by.var, Type = type.inferred) {
+	genThreshold <- function(threshold,
+                           Data = preplot.df,
+                           By = by.var,
+                           Type = type.inferred) {
 
-		# Tabulates the countries or languages (or whatever is specified in "By") and cuts off 
-		# below a certain threshold
-		items.retained <- aggregate(Data[, Type], list(Named = Data[, By]), FUN = sum)[order(aggregate(Data[, Type], list(By = Data[, By]), FUN = sum)[, "x"], decreasing = TRUE), "Named"][1:threshold]
+		# Tabulates the countries or languages (or whatever is specified in "By")
+    # and cuts off below a certain threshold
+		items.retained <- aggregate(Data[, Type],
+                                list(Named = Data[, By]),
+                                FUN = sum)[order(
+                                            aggregate(Data[, Type],
+                                                      list(By = Data[, By]),
+                                                      FUN = sum)[, "x"],
+                                            decreasing = TRUE),
+                                          "Named"][1:threshold]
 		# All of the "other" results summed by year into 
 		# their own category (Count.Notation added as well)
 		other <- Data[!Data[, By] %in% items.retained, ]
@@ -169,7 +194,7 @@ preplotGen <- function(data.in = patents.df, by.var = "Country", threshold = 6) 
 
 
 # Plots by year should come from a common expectation of structure.
-# Year is the cleaned up start year, publication year or year applied (depending on the dataset)
+# Year is the cleaned up start year, publication year or year applied
 # Country (or language, or anything else)
 
 # add facet labels
@@ -230,18 +255,20 @@ meyer.theme <- opts(plot.title = theme_text(size=22),
 ## Generating the graph primitives
 
 # Going to 1914 here
-# Generate the list first. This way if we want to subset further or otherwise fiddle with
-# data (like ordering factors) we can
+# Generate the list first. This way if we want to subset further or otherwise
+# fiddle with data (like ordering factors) we can
 patents.list <- preplotGen(data.in = patents.df, by.var = "Country")
 
-# This is all we need for bar chart. geom_bar() looks for a "fill" variable, not "colour"
+# This is all we need for bar chart. geom_bar() looks for a "fill" variable,
+# not "colour"
 # We use stat = "identity" because otherwise ggplot2 will try and sum up columns 
 # We've already done that with ddply
 # "stack" is the default presentation
 
 
 patents.country.fill <- ggplot() +
-													xlab("") + ylab(paste(patents.list$Type, "per year")) + 
+													xlab("") +
+                          ylab(paste(patents.list$Type, "per year")) + 
 													xlim(1860, 1914) +
 													opts(title = "Aeronautically relevant patents by Country 1860-1914") + 
 													geom_bar(data = patents.list$Data,

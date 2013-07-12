@@ -52,13 +52,19 @@ markUnsure <- function(data, column) {
 ### Patents
 
 # Matches country codes to full names
-langs.str <- c('United Kingdom','Germany','France','United States', 'Norway')
-patents.df[, "Country"] <- langs.str[match(tolower(patents.df[, "Country"]), c("br", "de", "fr", "us", "no"))]
+langs.str <- c('United Kingdom','Germany','France',
+							 'United States', 'Norway', 'Spain',
+							 'Russia')
+patents.df[, "Country"] <- langs.str[match(tolower(patents.df[, "Country"]),
+																					 c("br", "de", "fr",
+																					 	 "us", "no", "es",
+																					 	 "ru"))]
 
 ## Authors
 
 # Drop location information for authors (~ 400 rows)
-patents.df[, "Authors"] <- gsub("\\\n.*$|\\([^()]*\\)", "", patents.df[, "Authors"])
+patents.df[, "Authors"] <- gsub("\\\n.*$|\\([^()]*\\)", "",
+																patents.df[, "Authors"])
 
 ## Field 
 
@@ -72,7 +78,9 @@ patents.df[, "Field"] <- gsub(",|\\s+;\\s+", "; ", patents.df[, "Field"])
 
 
 # Capitalize words
-patents.df[!is.na(patents.df[, "Field"]), "Field"] <- capwords(patents.df[!is.na(patents.df[, "Field"]), "Field"])
+patents.f <- !is.na(patents.df[, "Field"])
+patents.df[patents.f, "Field"] <- capwords(patents.df[patents.f, "Field"])
+rm(patents.f)
 
 ## Years
 
@@ -80,7 +88,7 @@ patents.df[!is.na(patents.df[, "Field"]), "Field"] <- capwords(patents.df[!is.na
 
 patents.df[grep("\\?", patents.df[, "Year"]), ] <- NA
 
-# the current dataset doesn't have any non-matching rows but this is a reasonable first filter.
+# Current dataset doesn't have any non-matching rows:this is a reasonable filter
 patents.df[, "Year"] <- as.numeric(str_match(patents.df[, "Year"], "[0-9]{4}"))
 
 
@@ -94,29 +102,50 @@ patents.df[, "Year"] <- as.numeric(str_match(patents.df[, "Year"], "[0-9]{4}"))
 clubs.df <- markUnsure(clubs.df, "Scope")
 
 # cleanup entries
-clubs.df[, "Scope"] <- sub("Sttate", "State", clubs.df[, "Scope"])
-clubs.df[, "Scope"] <- sub("Internati?onal,? Scientific", "International Scientific", clubs.df[, "Scope"])
-clubs.df[, "Scope"] <- sub(" Club|, Multi-State", "", clubs.df[, "Scope"])
-clubs.df[, "Scope"] <- sub("Univesrsity", "University", clubs.df[, "Scope"])
+clubs.df[, "Scope"] <- sub("Sttate", 
+													 "State",
+													 clubs.df[, "Scope"])
+clubs.df[, "Scope"] <- sub("Internati?onal,? Scientific",
+													 "International Scientific",
+													 clubs.df[, "Scope"])
+clubs.df[, "Scope"] <- sub(" Club|, Multi-State",
+													 "",
+													 clubs.df[, "Scope"])
+clubs.df[, "Scope"] <- sub("Univesrsity",
+													 "University",
+													 clubs.df[, "Scope"])
 
 
 
 ## Country
 
 # Cleanup names
-clubs.df[, "Country"] <- gsub("^\\s+|\\s+$", "", clubs.df[, "Country"])
-clubs.df[, "Country"] <- sub("UISA|^US$", "USA", clubs.df[, "Country"])
-clubs.df[, "Country"] <- sub("[Gg]er(man$|many-|mamy|manu)", "Germany", clubs.df[, "Country"])
-clubs.df[, "Country"] <- sub("England,\\s?GB,\\s?UK.?$", "England, GB, UK", clubs.df[, "Country"])
+clubs.df[, "Country"] <- gsub("^\\s+|\\s+$",
+															"",
+															clubs.df[, "Country"])
+clubs.df[, "Country"] <- sub("UISA|^US$",
+															"USA",
+															clubs.df[, "Country"])
+clubs.df[, "Country"] <- sub("[Gg]er(man$|many-|mamy|manu)",
+															"Germany",
+															clubs.df[, "Country"])
+clubs.df[, "Country"] <- sub("England,\\s?GB,\\s?UK.?$",
+															"England, GB, UK",
+															clubs.df[, "Country"])
 
 # Replace country labels wholesale.
 # I may go back and change this but for now we're a little simpler
-clubs.df[grepl("UK", clubs.df[, "Country"]), "Country"] <- "United Kingdom"
-clubs.df[grepl("Germany", clubs.df[, "Country"]), "Country"] <- "Germany"
-clubs.df[grepl("France", clubs.df[, "Country"]), "Country"] <- "France"
-clubs.df[grepl("US", clubs.df[, "Country"]), "Country"] <- "United States"
-# We list both Austria and Hungary for club location originally (but not for firms)
-clubs.df[grepl("Austria(-| )Hungary", clubs.df[, "Country"]), "Country"] <- "Austria-Hungary"
+clubs.df[grepl("UK",
+							 clubs.df[, "Country"]), "Country"] <- "United Kingdom"
+clubs.df[grepl("Germany",
+							 clubs.df[, "Country"]), "Country"] <- "Germany"
+clubs.df[grepl("France",
+							 clubs.df[, "Country"]), "Country"] <- "France"
+clubs.df[grepl("US",
+							 clubs.df[, "Country"]), "Country"] <- "United States"
+# List both Austria and Hungary for club location originally (but not for firms)
+clubs.df[grepl("Austria(-| )Hungary",
+							 clubs.df[, "Country"]), "Country"] <- "Austria-Hungary"
 
 
 
@@ -129,10 +158,12 @@ clubs.df[grepl("Austria(-| )Hungary", clubs.df[, "Country"]), "Country"] <- "Aus
 # Mark "?" years as well as years which are noted as "1890 or earlier"
  
 clubs.df <- markUnsure(clubs.df, "Start Year")
-clubs.df[, "Unknown Start Year"] <- clubs.df[, "Unknown Start Year"] | grepl("earlier", clubs.df[, "Start Year"])
+clubs.df[, "Unknown Start Year"] <- clubs.df[, "Unknown Start Year"] |
+																		grepl("earlier", clubs.df[, "Start Year"])
 
 # Rough matching for years.
-clubs.df[, "Year"] <- as.numeric(str_match(clubs.df[, "Start Year"], "[0-9]{4}"))
+clubs.df[, "Year"] <- as.numeric(str_match(clubs.df[, "Start Year"],
+																					 "[0-9]{4}"))
 
 
 
@@ -147,18 +178,34 @@ clubs.df[, "Year"] <- as.numeric(str_match(clubs.df[, "Start Year"], "[0-9]{4}")
 firms.df <- markUnsure(firms.df, "Country")
 
 # clean up country listings
-firms.df[, "Country"] <- gsub("^US$|^.USA$", "USA", firms.df[, "Country"])
-firms.df[, "Country"] <- gsub(".*[Hh]ungary|^AH$", "Austria-Hungary", firms.df[, "Country"])
-firms.df[, "Country"] <- gsub("Germanu", "Germany", firms.df[, "Country"])
-firms.df[, "Country"] <- gsub(" \\([^()]*\\)", "", firms.df[, "Country"])
-firms.df[, "Country"] <- gsub("Czechoslo-\\s+vakia", "Czechoslovakia", firms.df[, "Country"])
+firms.df[, "Country"] <- gsub("^US$|^.USA$",
+															"USA",
+															firms.df[, "Country"])
+firms.df[, "Country"] <- gsub(".*[Hh]ungary|^AH$",
+															"Austria-Hungary",
+															firms.df[, "Country"])
+firms.df[, "Country"] <- gsub("Germanu",
+															"Germany",
+															firms.df[, "Country"])
+firms.df[, "Country"] <- gsub(" \\([^()]*\\)",
+															"",
+															firms.df[, "Country"])
+firms.df[, "Country"] <- gsub("Czechoslo-\\s+vakia",
+															"Czechoslovakia",
+															firms.df[, "Country"]
+
+
 
 # Standardize names to match patents and clubs
 # bit trickier due to splits so we use str_replace() instead of sub()
 # the syntax is different but the function is similar
 
-firms.df[, "Country"] <- str_replace(firms.df[, "Country"], "USA", "United States")
-firms.df[, "Country"] <- str_replace(firms.df[, "Country"], "UK", "United Kingdom")
+firms.df[, "Country"] <- str_replace(firms.df[, "Country"],
+																		 "USA",
+																		 "United States")
+firms.df[, "Country"] <- str_replace(firms.df[, "Country"],
+																		 "UK",
+																		 "United Kingdom")
 
 # separators for split listings
 
@@ -173,7 +220,8 @@ firms.df[, "Country"] <- sub(";", ",", firms.df[, "Country"])
 # Generate column for imputed years as we'll
 # drop a number of qualifiers
 
-firms.df[, "Year"] <- as.numeric(str_match(firms.df[, "Start Year"], "[0-9]{4}"))
+firms.df[, "Year"] <- as.numeric(str_match(firms.df[, "Start Year"],
+																					 "[0-9]{4}"))
 
 
 
@@ -188,7 +236,8 @@ art.languages <- c("French", "English", "German", "Italian", "Russian",
 # Match numbering to strings. The second argument to match() is a bit tricky
 # because we skip some numbers in the db so we can't simply take a sequence of 
 # numbers from 1-15.
-articles.df[, "Language"] <- art.languages[match(articles.df[, "Language"],  seq_along(art.languages))]
+articles.df[, "Language"] <- art.languages[match(articles.df[, "Language"],
+																								 seq_along(art.languages))]
 articles.df[, "Language"] <- factor(articles.df[, "Language"])
 
 
@@ -205,9 +254,14 @@ articles.df[grepl("^\\s*$", articles.df[, "Field"]), "Field"] <- NA
 
 ## Country
 # Normalize country names from abbreviations
-exhibition.countries <- c("United Kingdom", "France", "United States", "Belgium", NA, "Russia", "Germany", "Switzerland", "Canada")
+exhibition.countries <- c("United Kingdom", "France", "United States",
+													"Belgium", NA, "Russia",
+													"Germany", "Switzerland", "Canada")
 
-exhibits.df[, "Country"] <- exhibition.countries[match(exhibits.df[, "Country"], c("Br", "Fr", "US", "Belgium", NA, "Ru", "De", "Sw", "Ca"))]
+exhibits.df[, "Country"] <- exhibition.countries[match(exhibits.df[, "Country"],
+																											 c("Br", "Fr", "US",
+																											 	 "Belgium", NA, "Ru",
+																											 	 "De", "Sw", "Ca"))]
 
 ## Year 
 

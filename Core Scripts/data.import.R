@@ -25,18 +25,14 @@ dropAllNA <- function(data) {
 
 ## Path and read.csv
 
-path.patents <- file.path(getwd(), "Data", "Patents", "AeroPatents_2013_07_09converted.csv")
-# path.norway <- file.path(getwd(), "Data", "Patents", "Norsk_patents_Oct2012_0k.csv")
+path.patents <- file.path(getwd(),
+													"Data",
+													"Patents",
+													"AeroPatents_2013_07_09converted.csv")
 
 # na.strings modified to include empty date strings
 
 patents.df <- read.csv(path.patents, as.is = TRUE, na.strings = c("NA", ""))
-
-# norway.df <- read.csv(path.norway, as.is = TRUE, na.strings = c("NA", ""))
-
-# names(norway.df) <- names(patents.df)
-
-# patents.df <- rbind(patents.df, norway.df)
 
 patents.df <- dropAllNA(patents.df)
 
@@ -68,17 +64,17 @@ path.clubs <- file.path(getwd(), "Data", "Clubs", "Clubs_v15.30.csv")
 clubs.df <- read.csv(path.clubs, as.is = TRUE, na.strings = c("NA", ""))
 clubs.df <- dropAllNA(clubs.df)
 
-# Drop Notes (can return to these later but for now they're too much to handle automatically)
+# Drop Notes (for now they're too much to handle automatically)
 
 clubs.df <- clubs.df[, c(1, 9, 10, 2:5)]
 
 names(clubs.df) <- c("Name",
-					 "Start Year",
-					 "End Year",
-					 "Scope",
-					 "Affiliate of",
-					 "Country",
-					 "City")
+										 "Start Year",
+										 "End Year",
+										 "Scope",
+										 "Affiliate of",
+										 "Country",
+										 "City")
 										 
 
 
@@ -93,20 +89,20 @@ path.firms <- file.path(getwd(), "Data", "Firms", "FirmsV46.3.csv")
 firms.df <- read.csv(path.firms, as.is = TRUE, na.strings = c("NA", ""))
 firms.df <- dropAllNA(firms.df)
 
-# Drop Notes (can return to these later but for now they're too much to handle automatically)
+# Drop Notes (for now they're too much to handle automatically)
 
 # Reorder a bit to get years together (just cosmetic)
 firms.df <- firms.df[, c(1:3, 9, 4:8)]
 
 names(firms.df) <- c("Short Name",
-					 "Full Name",
-					 "Start Year",
-					 "End Year",
-					 "Country",
-					 "Place",
-					 "Type",
-					 "Founding Info",
-					 "Product Info")
+										 "Full Name",
+										 "Start Year",
+										 "End Year",
+										 "Country",
+										 "Place",
+										 "Type",
+										 "Founding Info",
+										 "Product Info")
 								 
 										 
 ### Articles
@@ -115,12 +111,17 @@ path.articles <- file.path(getwd(), "Data", "Publications", "articles0808.csv")
 
 
 # NA strings for "0" and "-" in order to easily capture and note these strings
-articles.df <- read.csv(path.articles, header = FALSE, as.is = TRUE, na.strings = c(NA, "-", "0"))
+articles.df <- read.csv(path.articles,
+												header = FALSE, as.is = TRUE,
+												na.strings = c(NA, "-", "0"))
 
-names(articles.df) <- c("Identifier", "Year", "Language", "Authors", "Field", "Title")
+names(articles.df) <- c("Identifier", "Year", "Language",
+												"Authors", "Field", "Title")
 
 # iconv() can convert the formatting over, no problem. No more complaints
-articles.df <- data.frame(llply(articles.df, function(x) iconv(x, "latin1", "UTF-8")), stringsAsFactors = FALSE)
+articles.df <- data.frame(llply(articles.df,
+																function(x) iconv(x, "latin1", "UTF-8")),
+													stringsAsFactors = FALSE)
 
 
 
