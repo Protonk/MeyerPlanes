@@ -5,20 +5,13 @@
 
 # Add a column for annotation (sorry, but ggplot is built like this)
 # idea for building a small data frame and attaching w/
-# group = NULL from here:
-# http://trinkerrstuff.wordpress.com/2012/09/01/add-text-annotations-to-ggplot2-faceted-plot/
-labelLoc <- function(Data , By, Type, yearMin = 1880) {
-	
+# group = NULL from here: http://bit.ly/Obc0aA
+labelLoc <- function(Data , By, Type) {	
 	labels.df <- ddply(Data, By, function(x) sum(x[, Type]))
 	names(labels.df)[2] <- "Count.Notation"
 	labels.df[, 1] <- as.character(labels.df[, 1])
 
-	# Locations
-  if (!is.null(yearMin)) {
-    x.loc <- yearMin
-  } else {
-    x.loc <- min(Data[, "Year"], na.rm = TRUE) + 1
-  }
+  x.loc <- min(Data[, "Year"], na.rm = TRUE) + 1
 	y.loc <- 0.6*max(ddply(Data, c(By), function(x) max(x[, Type]))[, 2])
 
 	labels.df[, "x"] <- x.loc
@@ -35,11 +28,6 @@ gg_color_hue <- function(n) {
   hues = seq(15, 375, length=n+1)
   hcl(h=hues, l=65, c=100)[1:n]
 }
-
-color.key <- gg_color_hue(10)
-names(color.key) <- c('United Kingdom','United States', 'Germany','France', 
-											'Russia', 'Italy', 'Canada', 'Norway', 
-											'Switzerland', 'Other')
 
 ## Combine multiple locations with some other column
 
@@ -69,9 +57,7 @@ ddplyMultiple <- function(data, inputcol, comparison,
   multiple.breakout <- data.frame(lapply(data.frame(prefill.mat), factor))
 
   names(multiple.breakout) <- c(paste(inputcol,
-                                "Category"
-
-
+                                "Category",
                                 1:max.cols,
                                 sep = " "))
 	multiple.comb <- cbind(multiple.breakout, data[, comparison])
@@ -110,28 +96,20 @@ ddplyMultiple <- function(data, inputcol, comparison,
 
 
 preplotGen <- function(data.in = patents.df,
+                       data.type = "Patents",
                        by.var = "Country",
                        threshold = 6) {
-	
-	# deparse(substitute()) is an R trick to get
-  # a character representation of an object name
-	type.inferred <- switch(deparse(substitute(data.in)),
-													patents.df = "Patents",
-													clubs.df = "Clubs",
-													firms.df = "Firms",
-													articles.df = "Articles",
-													exhibits.df = "Exhibits")		
-																		
+
 	## Split the dataset by year and the "by.var" column
   ## and generate a dataframe of counts
-	if (type.inferred == "Firms") {
+	if (data.type == "Firms") {
 		preplot.df <- ddplyMultiple(data = data.in,
                                 inputcol = by.var,   
                                 comparison = "Year")
 	} else {	
 		preplot.df <- ddply(data.in, c("Year", by.var), "nrow")
 	}
-	names(preplot.df) <- c("Year", by.var, type.inferred)
+	names(preplot.df) <- c("Year", by.var, data.type)
 	
 	# Cleanup
 	preplot.df <- preplot.df[complete.cases(preplot.df), ]
@@ -143,7 +121,7 @@ preplotGen <- function(data.in = patents.df,
 	genThreshold <- function(threshold,
                            Data = preplot.df,
                            By = by.var,
-                           Type = type.inferred) {
+                           Type = data.type) {
 
 		# Tabulates the countries or languages (or whatever is specified in "By")
     # and cuts off below a certain threshold
@@ -177,16 +155,20 @@ preplotGen <- function(data.in = patents.df,
 	
 	
 	# Add a dataframe for annotation (sorry, but ggplot is built like this)
-	labels.df <- labelLoc(Data = preplot.df, By = by.var, Type = type.inferred)
+	labels.df <- labelLoc(Data = preplot.df, By = by.var, Type = data.type)
 	
 	# Create a consistent color scheme
-	
-	color.out <- color.key[names(color.key) %in% labels.df[, by.var]]
+	color.key <- gg_color_hue(10)
+  color.countries <- c('United Kingdom','United States', 'Germany','France', 
+                       'Russia', 'Italy', 'Canada', 'Norway', 
+                       'Switzerland',  'Spain', 'Other')
+  color.key <- gg_color_hue(length(color.countries))
+	color.out <- color.key[color.countries %in% labels.df[, by.var]]
 	
 	# return a list object so we can pluck out what we need to plot later 
 	# and not carry arguments around							 
 	return(list(Data = preplot.df,
-							Type = type.inferred,
+							Type = data.type,
 							By = by.var,
 							Labels = labels.df,
 							Colors = color.out))
@@ -257,235 +239,54 @@ meyer.theme <- opts(plot.title = theme_text(size=22),
 # Going to 1914 here
 # Generate the list first. This way if we want to subset further or otherwise
 # fiddle with data (like ordering factors) we can
-patents.list <- preplotGen(data.in = patents.df, by.var = "Country")
 
-# This is all we need for bar chart. geom_bar() looks for a "fill" variable,
-# not "colour"
-# We use stat = "identity" because otherwise ggplot2 will try and sum up columns 
-# We've already done that with ddply
-# "stack" is the default presentation
-
-
-patents.country.fill <- ggplot() +
-													xlab("") +
-                          ylab(paste(patents.list$Type, "per year")) + 
-													xlim(1860, 1914) +
-													opts(title = "Aeronautically relevant patents by Country 1860-1914") + 
-													geom_bar(data = patents.list$Data,
-                                   aes_string(x = "Year", y = patents.list$Type, fill = patents.list$By),
-                                   stat = "identity") + scale_fill_manual(values = patents.list$Colors) +
-													meyer.theme 
-
-
-## Adding theme and layer changes
-
-patents.country.inset <- patents.country.fill + inset.legend
-
-## Faceting
-
-# Somewhat more complicated due to the nature of facet_grid()
-# the options drop the facet labels 
-
-patents.country.facet <- ggplot() + insetFacetLabel(patents.list) +
-  xlab("") + ylab(paste(patents.list$Type, "per year")) + 
-  xlim(1860, 1914) +
-  opts(title = "Aeronautically relevant patents by Country 1860-1914") + 
-  geom_bar(data = patents.list$Data,
-           aes_string(x = "Year", y = patents.list$Type, fill = patents.list$By),
-           stat = "identity") + scale_fill_manual(values = patents.list$Colors) +
-  meyer.theme + opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
-  scale_colour_manual(values = patents.list$Colors)
-
-
-
-
-
-
-### Clubs
-
-## Preplotting
-
-# I start at 1895 for firms because we don't see anything much before then
-# Set a threshold (you can change this) for minimum number of clubs. We save it as 
-# an object so we can put it in the footnote later
-clubs.list <- preplotGen(data.in = clubs.df, by.var = "Country", threshold = 4)
-
-# Bar chart, similar to the patent plot
-
-clubs.country.fill <- ggplot(data = clubs.list$Data, 
-															 aes_string(x = "Year", y = clubs.list$Type, fill = clubs.list$By)) +
-													xlab("") + ylab(paste(clubs.list$Type, "per year")) +
-													xlim(1895, 1912) + 
-													opts(title = "Aeronautical club starts by country 1895-1912") + 
-													geom_bar(stat = "identity") + scale_fill_manual(values = clubs.list$Colors) +
-													meyer.theme
-
-clubs.country.fill.1860 <- ggplot(data = clubs.list$Data, 
-															 aes_string(x = "Year", y = clubs.list$Type, fill = clubs.list$By)) +
-													xlab("") + ylab(paste(clubs.list$Type, "per year")) +
-													xlim(1860, 1912) + 
-													opts(title = "Aeronautical club starts by country 1860-1912") +  
-													geom_bar(stat = "identity") + scale_fill_manual(values = clubs.list$Colors) + 
-													meyer.theme 
-
-
-## Theme and layer changes are likewise relient on the same syntax and functions
-
-clubs.country.inset <- clubs.country.fill + inset.legend
-
-clubs.country.inset.1860 <- clubs.country.fill.1860 + inset.legend
-
-
-
-### faceting
-
-clubs.country.facet.1860 <- clubs.country.fill.1860 + insetFacetLabel(clubs.list) +
-	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
-	scale_colour_manual(values = clubs.list$Colors)
-
-clubs.country.facet <- clubs.country.fill + insetFacetLabel(clubs.list) +
-	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
-	scale_colour_manual(values = clubs.list$Colors)
-
-
-### Firms
-
-## Preplotting
-
-# I start at 1895 for firms because we don't see anything much before then
-# Firm preplotting is a bit different to the large number of (coded) multinational firms
-# Top 6 countries plotted. We can do more than 6 for some plots but 6 is sensible	
-firms.list <- preplotGen(data.in = firms.df, by.var = "Country", threshold = 5)
-
-
-# Bar chart, similar to the patent plot
-
-firms.country.fill <- ggplot(data = firms.list$Data, 
-															 aes_string(x = "Year", y = firms.list$Type, fill = firms.list$By)) +
-													xlab("") + ylab(paste(firms.list$Type, "per year")) + 
-													xlim(1895, 1909) + 
-													opts(title = "Aeronautical firm starts by country 1895-1909") + 
-													geom_bar(stat = "identity") + scale_fill_manual(values = firms.list$Colors) +
-													meyer.theme 
-
-## Theme and layer changes are likewise relient on the same syntax and functions
-
-firms.country.inset <- firms.country.fill + inset.legend
-
-### faceting
-
-
-firms.country.facet <- firms.country.fill + insetFacetLabel(firms.list) +
-	opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
-	scale_colour_manual(values = firms.list$Colors)
-
-
-### Club/Firm plots
-
-clubs.flat <- clubs.list[["Data"]]
-firms.flat <- firms.list[["Data"]]
-clubs.flat[, "Country"] <- as.character(clubs.flat[, "Country"])
-firms.flat[, "Country"] <- as.character(firms.flat[, "Country"])
-
-merged.flat <- merge(clubs.flat, firms.flat, by = c("Country", "Year"), all = TRUE)
-merged.flat[is.na(merged.flat)] <- 0
-# Italy has no firm starts and Russia has no club starts. Canada has very few of either
-merged.flat <- merged.flat[!merged.flat[, "Country"] %in% c("Italy", "Russia", "Canada"), ]
-
-library(reshape2)
-
-cf.melt <- melt(merged.flat, id.vars = c("Country", "Year"), measure.vars = c("Clubs", "Firms"))
-
-names(cf.melt) <- c("Country", "Year", "Type", "Start")
-
-rm(firms.flat, clubs.flat, merged.flat)
-
-
-clubs.firms.list <- list(Data = subset(cf.melt, Year >= 1895 & Year <= 1909),
-												 Type = "Start",
-												 Range = c(1895, 1909),
-												 By = "Country",
-												 Title = "Combined firm and club starts 1895-1916")
-
-clubs.firms.list$Labels <- labelLoc(Data = clubs.firms.list$Data, By = "Country", Type = clubs.firms.list$Type)
-				
-
-clubs.firms.fill <- ggplot(data = clubs.firms.list$Data, aes(x = Year, y = Start, fill = Type)) + 
-	xlab("") + ylab("Starts per year") + opts(title = clubs.firms.list$Title) + 
-	geom_bar(stat = "identity", position = "dodge") + meyer.theme
-
-
-### Articles
-
-# Start in 1870 as there is a much longer lead-in for articles than clubs, etc.
-# ends at 1909 because Brockett is 1910
-# set threshold to 4
-articles.list <- preplotGen(data.in = articles.df, by.var = "Language", threshold = 4)
-
-
-articles.lang.fill <- ggplot(data = articles.list$Data, 
-															 aes_string(x = "Year", y = articles.list$Type, fill = articles.list$By)) +
-													xlab("") + ylab(paste(articles.list$Type, "per year")) + 
-													xlim(1850, 1909) +
-													opts(title = "Aeronautically relevant articles by language 1850-1909") +
-													geom_bar(stat = "identity") +
-													meyer.theme
-													
-articles.lang.inset <- articles.lang.fill + inset.legend	
-
-articles.lang.facet <- articles.lang.fill + insetFacetLabel(articles.list) +
-  opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE)	
-
-## article line plots
-
-# harcoded estimates
-# these will eventually be moved higher up in the flow
-
-
-articles.est <- read.csv(file.path(getwd(), "Data", "Publications/estimates.csv"), as.is = TRUE) 
-articles.total <- ddply(articles.list$Data, "Year", function(x) data.frame(Articles = sum(x[, "Articles"])))
-# rbind and drop last row of article total
-articles.total <- rbind(articles.total[-nrow(articles.total), ], articles.est)
-rm(articles.est)
-articles.total <- data.frame(articles.total, Language = "Total")
-
-# merge with article data (makes plotting easier)
-articles.list.hc <- articles.list
-
-articles.list.hc$Data <- rbind(articles.list.hc$Data, articles.total)
-articles.list.hc$Data <- articles.list.hc$Data[order(articles.list.hc$Data[, "Year"]), ]
-
-# adjust hardcoded values to the list
-
-articles.list.hc$Title <- "Aeronautically-relevant articles by language 1870-1916"
-articles.list.hc$Range <- c(1870, 1916)
-
-# plot it!
-
-ggplot(data = articles.list.hc$Data, aes_string(x = "Year", y = articles.list.hc$Type, colour = articles.list.hc$By)) + xlab("") + 
-  geom_line(aes(linetype = Language), size = 1.5) + 
-  scale_linetype_manual("", values = c(rep("solid", 5), "dashed"), guide = FALSE) +
-  ylab(paste(articles.list.hc$Type, "per year")) + 
-  opts(title = articles.list.hc$Title)  + 
-  meyer.theme + xlim(1890, 1916) + inset.legend
-
-### Exhibits
-
-exhibits.list <- preplotGen(data.in = exhibits.df, by.var = "Country", threshold = 4)	
-
-exhibits.country.fill <- 	ggplot(data = exhibits.list$Data, 
-															 aes_string(x = "Year", y = exhibits.list$Type, fill = exhibits.list$By)) +
-													xlab("") + ylab(paste(exhibits.list$Type, "per year")) + 
-													xlim(1870, 1916) +
-													opts(title = "Aeronautically relevant exhibitions by country 1870-1916") +
-													geom_bar(stat = "identity") + scale_fill_manual(values = exhibits.list$Colors) +
-													meyer.theme 				
-
-exhibits.country.inset <- exhibits.country.fill + inset.legend		
-
-exhibits.country.facet <- exhibits.country.fill + insetFacetLabel(exhibits.list) +
-  opts(strip.background = theme_rect(colour = NA, fill = NA)) + guides(fill = FALSE) +
-	scale_colour_manual(values = exhibits.list$Colors)
-
-											
-													
+overallPlot <- function(By = "Country",
+                        data = c("Patents", "Clubs",
+                                 "Firms", "Articles",
+                                 "Exhibits"),
+                        start = 1860,
+                        end = 1914,
+                        title = NULL,
+                        facet = FALSE) {
+  data.arg <- match.arg(data)
+  data.src <- switch(data.arg,
+                     Patents = patents.df,
+                     Clubs = clubs.df,
+                     Firms = firms.df,
+                     Articles = articles.df,
+                     Exhibits = exhibits.df)
+  data.brushed <- subset(data.src, Year >= start & Year <= end)
+  if(!is.null(title)) {
+    plot.title <- paste(title)
+  } else {
+    plot.title <- paste("Aeronautically-relevant",
+                        data.arg, "by", By,
+                        paste0(start, "-", end))
+  }
+  preplot.l <- preplotGen(data.in = data.brushed,
+                          by.var = By,
+                          data.type = data.arg)
+  plot.base <- ggplot()
+  if(facet) {
+    plot.base <- plot.base + insetFacetLabel(preplot.l) 
+  }
+  plot.out <- plot.base +
+                geom_bar(data = preplot.l$Data,
+                         aes_string(x = "Year",
+                                    y = preplot.l$Type,
+                                    fill = preplot.l$By),
+                         stat = "identity") +
+                scale_fill_manual(values = preplot.l$Colors)
+  plot.out <- plot.out +
+                ylab(paste(preplot.l$Type, "per year")) + ylab("") +
+                ggtitle(plot.title)
+                meyer.theme
+  if(facet) {
+    plot.out <- plot.out +
+                   opts(strip.background = theme_rect(colour = NA, fill = NA)) +
+                   guides(fill = FALSE)
+  } else {
+    plot.out <- plot.out + inset.legend
+  }
+  return(plot.out)
+}

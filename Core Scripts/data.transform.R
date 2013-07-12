@@ -192,7 +192,7 @@ firms.df[, "Country"] <- gsub(" \\([^()]*\\)",
 															firms.df[, "Country"])
 firms.df[, "Country"] <- gsub("Czechoslo-\\s+vakia",
 															"Czechoslovakia",
-															firms.df[, "Country"]
+															firms.df[, "Country"])
 
 
 
