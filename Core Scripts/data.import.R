@@ -28,7 +28,7 @@ dropAllNA <- function(data) {
 path.patents <- file.path(getwd(),
 													"Data",
 													"Patents",
-													"AeroPatents_2013_07_09converted.csv")
+													"AeroPatents_2013_07_12converted.csv")
 
 # na.strings modified to include empty date strings
 

@@ -105,42 +105,6 @@ genThreshold <- function(threshold,
     return(output.df)
 }
 
-## Preplot functions for by year/country (or year/field, etc.) plots
-## Generates list for preplotting so we can pluck out variables of interest.
-
-
-preplotGen <- function(data.in = patents.df,
-                       data.type = "Patents",
-                       by.var = "Country",
-                       threshold = 6) {
-
-	## Split the dataset by year and the "by.var" column
-  ## and generate a dataframe of counts
-	if (data.type == "Firms") {
-		preplot.df <- ddplyMultiple(data = data.in,
-                                inputcol = by.var,   
-                                comparison = "Year")
-	} else {	
-		preplot.df <- ddply(data.in, c("Year", by.var), "nrow")
-	}
-	names(preplot.df) <- c("Year", by.var, data.type)
-	
-	# Cleanup
-	preplot.df <- preplot.df[complete.cases(preplot.df), ]
-	preplot.df[, "Year"] <- as.numeric(preplot.df[, "Year"])
-	
-  # cut off at threshold
-  preplot.df <- genThreshold(threshold = threshold,
-                             Data = preplot.df,
-                             collect = by.var,
-                             measure = data.type)
-
-	# return a list object so we can pluck out what we need to plot later 
-	# and not carry arguments around							 
-	return(preplot.df)
-}
-
-
 # Plots by year should come from a common expectation of structure.
 # Year is the cleaned up start year, publication year or year applied
 # Country (or language, or anything else)
@@ -198,6 +162,57 @@ meyer.theme <- opts(plot.title = theme_text(size=22),
                     axis.title.y = theme_text(size = 15, angle = 90),
                     panel.background = theme_rect(fill='#EBEBEB', colour=NA))
 
+
+## Preplot functions for by year/country (or year/field, etc.) plots
+## Generates list for preplotting so we can pluck out variables of interest.
+
+
+preplotGen <- function(data.in = patents.df,
+                       data.type = "Patents",
+                       by.var = "Country",
+                       start = NULL,
+                       end = NULL,
+                       ...) {
+  ## Split the dataset by year and the "by.var" column
+  ## and generate a dataframe of counts
+  if (data.type == "Firms") {
+    preplot.df <- ddplyMultiple(data = data.in,
+                                inputcol = by.var,   
+                                comparison = "Year")
+  } else {  
+    preplot.df <- ddply(data.in, c("Year", by.var), "nrow")
+  }
+  names(preplot.df) <- c("Year", by.var, data.type)
+  
+  # Cleanup
+  preplot.df <- preplot.df[complete.cases(preplot.df), ]
+  preplot.df[, "Year"] <- as.numeric(preplot.df[, "Year"])
+  yearDrop <- function() {
+                if(!(start | end)) {
+                  return(preplot.df)
+                } else {
+                  if (!start) {
+                    start <- min(preplot.df[, "Year"], na.rm = TRUE)
+                  }
+                  if (!end) {
+                    end <- max(preplot.df[, "Year"], na.rm = TRUE)
+                  }
+                  return(subset(preplot.df, Year >= start & Year <= end))
+                }
+              }
+  preplot.df <- yearDrop()
+  # cut off at threshold
+  preplot.df <- genThreshold(...,
+                             Data = preplot.df,
+                             collect = by.var,
+                             measure = data.type)
+
+  # return a list object so we can pluck out what we need to plot later 
+  # and not carry arguments around               
+  return(preplot.df)
+}
+
+
 #### Actual plots
 
 overallPlot <- function(By = c("Country", "Language"),
@@ -207,7 +222,9 @@ overallPlot <- function(By = c("Country", "Language"),
                         start = 1860,
                         end = 1914,
                         title = NULL,
-                        facet = FALSE) {
+                        facet = FALSE,
+                        threshold = 6,
+                        ...) {
   data.arg <- match.arg(data)
   by.arg <- match.arg(By)
   data.src <- switch(data.arg,
@@ -216,7 +233,6 @@ overallPlot <- function(By = c("Country", "Language"),
                      Firms = firms.df,
                      Articles = articles.df,
                      Exhibits = exhibits.df)
-  data.brushed <- subset(data.src, Year >= start & Year <= end)
   if(!is.null(title)) {
     plot.title <- paste(title)
   } else {
@@ -224,9 +240,12 @@ overallPlot <- function(By = c("Country", "Language"),
                         data.arg, "by", by.arg,
                         paste0(start, "-", end))
   }
-  preplot <- preplotGen(data.in = data.brushed,
-                          by.var = by.arg,
-                          data.type = data.arg)
+  preplot <- preplotGen(data.in = data.src,
+                        by.var = by.arg,
+                        data.type = data.arg,
+                        start = start,
+                        end = end,
+                        threshold = threshold)
 
   # Add a dataframe for annotation (sorry, but ggplot is built like this)
   labels.df <- labelLoc(Data = preplot,
