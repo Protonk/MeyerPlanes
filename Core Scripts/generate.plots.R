@@ -62,6 +62,48 @@ ddplyMultiple <- function(data, inputcol, comparison,
 	return(df.reduced)
 }
 
+# Accepts same arguments from local function environment and
+# generates plot info (and notation) for left out groups
+
+genThreshold <- function(threshold,
+                         Data,
+                         collect,
+                         measure) {
+  # Tabulates the countries or languages (or whatever is specified in "By")
+  # and cuts off below a certain threshold
+  retained <- ddply(Data, collect,
+                          function(x) {
+                              sum(x[, measure], na.rm = TRUE)
+                          })
+  retained <- retained[order(retained[, 2], decreasing = TRUE), collect]
+  retained <- retained[1:threshold]
+  # All of the "other" results summed by year into 
+  # their own category (Count.Notation added as well)
+
+  other <- Data[!Data[, collect] %in% retained, ]
+  if (nrow(other) != 0) {
+
+    if("variable" %in% names(other)) {
+      other <- ddply(other,
+                     c("Year", "variable"),
+                     function(x) sum(x[, measure], na.rm = TRUE))
+      names(other)[3] <- measure
+      other[, collect] <- "Other"
+    } else {
+      other <- ddply(other, "Year", function(x) sum(x[, measure], na.rm = TRUE))
+      names(other)[2] <- measure
+      other[, collect] <- "Other"
+      other <- other[, c(collect, "Year", measure)]
+    }
+
+    # Added back to the original dataframe and the factor levels condensed
+    output.df <- rbind(Data[Data[, collect] %in% retained, ], other)
+    output.df[, collect] <- factor(as.character(output.df[, collect]))
+    } else {
+      output.df <- Data[Data[, collect] %in% retained, ]
+    }
+    return(output.df)
+}
 
 ## Preplot functions for by year/country (or year/field, etc.) plots
 ## Generates list for preplotting so we can pluck out variables of interest.
@@ -87,47 +129,12 @@ preplotGen <- function(data.in = patents.df,
 	preplot.df <- preplot.df[complete.cases(preplot.df), ]
 	preplot.df[, "Year"] <- as.numeric(preplot.df[, "Year"])
 	
-	# Accepts same arguments from local function environment and
-	# generates plot info (and notation) for left out groups
+  # cut off at threshold
+  preplot.df <- genThreshold(threshold = threshold,
+                             Data = preplot.df,
+                             collect = by.var,
+                             measure = data.type)
 
-	genThreshold <- function(threshold,
-                           Data = preplot.df,
-                           By = by.var,
-                           Type = data.type) {
-
-		# Tabulates the countries or languages (or whatever is specified in "By")
-    # and cuts off below a certain threshold
-		items.retained <- aggregate(Data[, Type],
-                                list(Named = Data[, By]),
-                                FUN = sum)[order(
-                                            aggregate(Data[, Type],
-                                                      list(By = Data[, By]),
-                                                      FUN = sum)[, "x"],
-                                            decreasing = TRUE),
-                                          "Named"][1:threshold]
-		# All of the "other" results summed by year into 
-		# their own category (Count.Notation added as well)
-		other <- Data[!Data[, By] %in% items.retained, ]
-		if (nrow(other) != 0) {
-			other <- ddply(other, "Year", function(x) sum(x[, Type]))
-			names(other)[2] <- Type
-			other[, By] <- "Other"
-			
-			other <- other[, c(By, "Year", Type)]
-		# Added back to the original dataframe and the factor levels condensed
-			output.df <- rbind(Data[Data[, By] %in% items.retained, ], other)
-			output.df[, By] <- factor(as.character(output.df[, By]))
-		} else {
-			output.df <- Data[Data[, By] %in% items.retained, ]
-		}
-		return(output.df)
-	}
-
-	preplot.df <- genThreshold(threshold = threshold)
-	
-	
-
-	
 	# return a list object so we can pluck out what we need to plot later 
 	# and not carry arguments around							 
 	return(preplot.df)
