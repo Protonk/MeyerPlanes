@@ -44,7 +44,7 @@ outputName <- function(plot.obj) {
 
 # we can't do footnotes and ggsave() easily so this will serve as a means to 
 # export the plots exactly as we want them
-printPng <- function(source = "clubs", object, name, layer) {
+printPng <- function(source = "clubs", object, name) {
   location <- file.path(getwd(), "Images", paste(name, "png", sep = "."))
   png(filename = location, 
       width = 1024, height = 632)
@@ -58,15 +58,14 @@ printPng <- function(source = "clubs", object, name, layer) {
 plot.objects <- ls()[sapply(ls(), function(x) any(class(get(x)) %in% "ggplot"))]
 plot.objects <- plot.objects[!grepl("fill", plot.objects)]
 plot.sources <- sapply(strsplit(plot.objects, "\\."), `[`, 1)
-plot.layers <- sapply(strsplit(plot.objects, "\\."), tail, 1)
 plot.names <- character(length(plot.objects))
 for (i in seq_along(plot.objects)) {
 	plot.names[i] <- outputName(get(plot.objects[i]))
 	}
 
-  
+
 for (i in seq_along(plot.objects)) {
-  printPng(source = plot.sources[i], object = get(plot.objects[i]), name = plot.names[i], layer = plot.layers[i])
+  printPng(source = plot.sources[i], object = get(plot.objects[i]), name = plot.names[i])
 }
 
         
